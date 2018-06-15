@@ -230,8 +230,8 @@ int Dstar::computeShortestPath() {
            !openList.empty()
            &&
            (( openList.top() < (s_start = calculateKey(s_start)) )
-           ||
-           ( getRHS(s_start) != getG(s_start) ))
+            ||
+            ( getRHS(s_start) != getG(s_start) ))
            ) {
         
         if (k++ > maxSteps) {
@@ -746,13 +746,13 @@ bool Dstar::replan(){
         iter_next.y = iter->y;
         int dx = iter_next.x - iter_cur.x, dy = iter_next.y - iter_cur.y;
         if(dx == 1) DLite_Cost += costHash[iter_cur].cost_right;
-            else if(dx == -1) DLite_Cost += costHash[iter_cur].cost_left;
-                else if(dy == 1) DLite_Cost += costHash[iter_cur].cost_down;
-                    else if(dy == -1) DLite_Cost += costHash[iter_cur].cost_up;
-                        iter_cur = iter_next;
-                        }
-        return true;
-
+        else if(dx == -1) DLite_Cost += costHash[iter_cur].cost_left;
+        else if(dy == 1) DLite_Cost += costHash[iter_cur].cost_down;
+        else if(dy == -1) DLite_Cost += costHash[iter_cur].cost_up;
+        iter_cur = iter_next;
+    }
+    return true;
+    
 }
 
 bool Dstar::Dijkstra_calc_distance(int (*dist)[MAP_SIZE], int (*prev)[MAP_SIZE][2], state v, Dijkstra_Node u, double cost)

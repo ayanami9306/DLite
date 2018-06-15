@@ -3,240 +3,18 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-//#include <windows.h>
-#include <vector>
-#include "Dstar.h"
+#include "User_Defined_Function.h"
 
-#define NUM_ROBOT 4
-#define NUM_TASK 16
-#define MAX_ENERGY 2000
-#define TIME_MAX 400
-
-#define IDLE 0
-#define WORKING 1
-#define MOVING 2
-
-#define UP 'w'
-#define DOWN 's'
-#define LEFT 'a'
-#define RIGHT 'd'
-
-#define DLite
-
-#define INF 999999
 int hWallMatrix[MAP_SIZE - 1][MAP_SIZE];
 int vWallMatrix[MAP_SIZE][MAP_SIZE - 1];
 int Meet_hWallMatrix[MAP_SIZE - 1][MAP_SIZE];
 int Meet_vWallMatrix[MAP_SIZE][MAP_SIZE - 1];
-int terreinMatrix[MAP_SIZE][MAP_SIZE];
-int asdf = 0;
-
-class coordinate
-{
-public:
-    int x;
-    int y;
-    
-    coordinate(int xx, int yy)
-    {
-        x = xx;
-        y = yy;
-    }
-    
-    coordinate()
-    {
-        x = 0;
-        y = 0;
-    }
-    
-    
-    
-    //~coordinate();
-};
-
-class task
-{
-public:
-    coordinate taskcoord;
-    
-    std::vector<coordinate> path;
-    
-    int taskId;
-    
-    int taskCost;
-    
-};
-
-class Robot
-{
-public:
-    Dstar * Robot_DStar[NUM_TASK];
-    
-    vector<coordinate> pre_path;
-    
-    coordinate robotcoord;
-    
-    coordinate taskCoord[NUM_TASK];
-    
-    int travelCost[MAP_SIZE][MAP_SIZE]; //travel cost of block coordinate
-    
-    int taskCost[NUM_TASK]; // cost of a task performed by this robot
-    
-    //task taskList[NUM_TASK];// list of tasks assgined to this robot
-    
-    task AllocTask;
-    
-    //int alloc_taskID;
-    
-    int totalCost;// total energy consumed
-    int totalBlocks; // total number of blocks traveled
-    
-    //int num_task;
-    int status;
-    int energy;
-    
-    //int curr_task;
-    int pathIndex;
-    int Index_Robot;
-    
-    Robot()
-    {
-        robotcoord.x = 0;
-        robotcoord.y = 0;
-        
-        //num_task = 0;
-        
-        energy = MAX_ENERGY;
-        
-        status = IDLE;
-        //curr_task = 0;
-        pathIndex = 0;
-        
-        for (int ii = 0; ii < NUM_TASK; ii++)
-        {
-            taskCoord[ii].x = 0;
-            taskCoord[ii].y = 0;
-            taskCost[ii] = 0;
-            
-            AllocTask.taskId = -1;
-            
-        }
-        
-        for (int ii = 0; ii < MAP_SIZE; ii++)
-        {
-            for (int jj = 0; jj < MAP_SIZE; jj++)
-            {
-                travelCost[ii][jj] = 0;
-            }
-        }
-        
-        totalCost = 0;
-        totalBlocks = 0;
-    }
-    
-    void assignTask(int taskId, std::vector<coordinate> inputPath, coordinate location[]);
-    
-    int getTravelCost();
-    int getTravelCost(int x, int y);
-    
-    int getTaskCost();
-    int getTaskCost(int x);
-    
-    coordinate getCurrentPosition();
-    
-    bool updatePostion();
-    
-    bool atTask();
-    
-};
 
 Robot robotList[NUM_ROBOT];
 coordinate itemCoord[NUM_TASK];
 bool Flag_Item_Activate[NUM_TASK] = { false, };
 Dstar * Task_to_Task[2];
-
-void Robot::assignTask(int taskId, std::vector<coordinate> inputPath, coordinate itemList[])
-{
-    
-    coordinate current;
-    coordinate next;
-    
-    
-    //if (num_task < NUM_TASK)
-    if (taskId < NUM_TASK)
-    {
-        /*if (num_task == 0)
-         {
-         current.x = robotcoord.x;
-         current.y = robotcoord.y;
-         }
-         else
-         {
-         current.x = itemList[taskList[num_task - 1].taskId].x;
-         current.y = itemList[taskList[num_task - 1].taskId].y;
-         }
-         
-         next.x = itemList[taskId].x;
-         next.y = itemList[taskId].y;*/
-        
-        current.x = robotcoord.x;
-        current.y = robotcoord.y;
-        next.x = itemList[taskId].x;
-        next.y = itemList[taskId].y;
-        
-        
-        printf("path assigned from (%d, %d) to (%d, %d)\n", current.x, current.y, next.x, next.y);
-        AllocTask.taskId = taskId;
-        AllocTask.path = inputPath;
-        AllocTask.taskcoord.x = next.x;
-        AllocTask.taskcoord.y = next.y;
-        //num_task++;
-        
-    }
-    else
-    {
-        printf("ERROR : taskID is invalid");
-    }
-}
-
-int Robot::getTravelCost()
-{
-    return travelCost[robotcoord.y][robotcoord.x];
-}
-
-int Robot::getTravelCost(int x, int y)
-{
-    return travelCost[y][x];
-}
-
-int Robot::getTaskCost()
-{
-    //return taskCost[taskList[curr_task].taskId];
-    return taskCost[AllocTask.taskId];
-}
-
-int Robot::getTaskCost(int x)
-{
-    return taskCost[x];
-}
-
-coordinate Robot::getCurrentPosition()
-{
-    return robotcoord;
-}
-
-bool Robot::atTask()
-{
-    //if (robotcoord.x == taskList[curr_task].taskcoord.x && robotcoord.y == taskList[curr_task].taskcoord.y)
-    if (robotcoord.x == AllocTask.taskcoord.x && robotcoord.y == AllocTask.taskcoord.y)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
+int task_produced = 0;
 
 void print_result(Robot  * robotList, int mode)
 {
@@ -263,292 +41,6 @@ void print_result(Robot  * robotList, int mode)
     printf("\n");
 }
 
-////////////////////////////////////////////////////////////////////
-void PrintPath(int RobotIndex, int ItemIndex, int code)
-{
-    if (!code)
-    {
-        Robot *temp_robot = &robotList[RobotIndex];
-        list<state>mypath;
-#ifdef DLite
-        mypath = temp_robot->Robot_DStar[ItemIndex]->getPath();
-#else
-        mypath = temp_robot->Robot_DStar[ItemIndex]->getDijkstraPath();
-#endif
-        list<state>::iterator iter;
-        printf("Robot: %d(%d,%d), Task : %d(%d,%d)\n-------------\n", RobotIndex, temp_robot->robotcoord.x, temp_robot->robotcoord.y, ItemIndex, itemCoord[ItemIndex].x, itemCoord[ItemIndex].y);
-        for (iter = mypath.begin(); iter != mypath.end(); iter++)
-        {
-            printf("%d, %d\n", iter->x, iter->y);
-        }
-        printf("-----------------------\n");
-    }
-    else
-    {
-        list<state>mypath;
-#ifdef DLite
-        mypath = Task_to_Task[RobotIndex]->getPath();
-#else
-        mypath = Task_to_Task[RobotIndex]->getDijkstraPath();
-#endif
-        list<state>::iterator iter;
-        printf("-------------\n");
-        for (iter = mypath.begin(); iter != mypath.end(); iter++)
-        {
-            printf("%d, %d\n", iter->x, iter->y);
-        }
-        printf("-----------------------\n");
-    }
-}
-
-int getCost(int RobotIndex, int ItemIndex, int code)
-{
-    if (!code)
-    {
-#ifdef DLite
-        return robotList[RobotIndex].Robot_DStar[ItemIndex]->getCost();
-#else
-        return robotList[RobotIndex].Robot_DStar[ItemIndex]->getDijkstraCost();
-#endif
-    }
-    else
-    {
-#ifdef DLite
-        return Task_to_Task[RobotIndex]->getCost();
-#else
-        return Task_to_Task[RobotIndex]->getDijkstraCost();
-#endif
-    }
-}
-
-void Change_Start(int RobotIndex, int ItemIndex, int x, int y, int code)
-{
-    if (!code)
-    {
-        robotList[RobotIndex].Robot_DStar[ItemIndex]->updateStart(x, y);
-#ifdef DLite
-        robotList[RobotIndex].Robot_DStar[ItemIndex]->replan();
-#else
-        robotList[RobotIndex].Robot_DStar[ItemIndex]->Dijkstra();
-#endif
-    }
-    else
-    {
-        Task_to_Task[RobotIndex]->updateStart(x, y);
-#ifdef DLite
-        Task_to_Task[RobotIndex]->replan();
-#else
-        Task_to_Task[RobotIndex]->Dijkstra();
-#endif
-    }
-}
-
-void Change_Goal(int RobotIndex, int ItemIndex, int x, int y, int code)
-{
-    if (!code)
-    {
-        robotList[RobotIndex].Robot_DStar[ItemIndex]->updateGoal(x, y);
-#ifdef DLite
-        robotList[RobotIndex].Robot_DStar[ItemIndex]->replan();
-#else
-        robotList[RobotIndex].Robot_DStar[ItemIndex]->Dijkstra();
-#endif
-    }
-    else
-    {
-        Task_to_Task[RobotIndex]->updateGoal(x, y);
-#ifdef DLite
-        Task_to_Task[RobotIndex]->replan();
-#else
-        Task_to_Task[RobotIndex]->Dijkstra();
-#endif
-    }
-}
-
-vector<coordinate> getPath(int RobotIndex, int ItemIndex, int code)
-{
-    vector<coordinate> path;
-    coordinate item_path;
-    list<state>mypath;
-    if (!code)
-    {
-        Robot *temp_robot = &robotList[RobotIndex];
-#ifdef DLite
-        mypath = temp_robot->Robot_DStar[ItemIndex]->getPath();
-#else
-        mypath = temp_robot->Robot_DStar[ItemIndex]->getDijkstraPath();
-#endif
-    }
-    else
-    {
-#ifdef DLite
-        mypath = Task_to_Task[RobotIndex]->getPath();
-#else
-        mypath = Task_to_Task[RobotIndex]->getDijkstraPath();
-#endif
-    }
-    
-    list<state>::iterator iter;
-    for (iter = mypath.begin(); iter != mypath.end(); iter++)
-    {
-        item_path.x = iter->x;
-        item_path.y = iter->y;
-        path.push_back(item_path);
-    }
-    return path;
-    
-}
-
-void BroadCast_Walls(int x1, int y1, int x2, int y2)
-{
-    
-    for (int Robot_index = 0; Robot_index < NUM_ROBOT; Robot_index++)
-    {
-        Robot *temp_robot = &robotList[Robot_index];
-        for (int Task_index = 0; Task_index < NUM_TASK; Task_index++)
-        {
-            temp_robot->Robot_DStar[Task_index]->updateWall(x1, y1, x2, y2);
-        }
-    }
-    
-    Task_to_Task[0]->updateWall(x1, y1, x2, y2);
-    Task_to_Task[1]->updateWall(x1, y1, x2, y2);
-}
-
-bool is_path_same(vector<coordinate> path1, vector<coordinate> path2)
-{
-    if (path1.size() != path2.size()) return false;
-    else
-    {
-        for (int i = 0; i<path1.size(); i++)
-            if ((path1.at(i).x != path2.at(i).x) || (path1.at(i).y != path2.at(i).y))
-                return false;
-    }
-    return true;
-}
-
-bool Robot::updatePostion()
-{
-    //pre_path = getPath(Index_Robot, AllocTask.taskId, 0);
-    
-    //해당 지점에서 벽이 있는지 둘러보고, 있으면 업데이트 합니다.
-    //이미 보았던 벽은 업데이트 하지 않게 되어있습니다.
-    int ix = robotcoord.x, iy = robotcoord.y;
-    bool is_Meet_Wall = false;
-    
-    if (iy < MAP_SIZE - 1 && ix < MAP_SIZE)
-    {
-        if (hWallMatrix[iy][ix] && !Meet_hWallMatrix[iy][ix])
-        {
-            is_Meet_Wall = true;
-            BroadCast_Walls(ix, iy, ix, iy + 1);
-            Meet_hWallMatrix[iy][ix] = 1;
-        }
-        if (iy - 1 >= 0)
-        {
-            if (hWallMatrix[iy - 1][ix] && !Meet_hWallMatrix[iy - 1][ix])
-            {
-                is_Meet_Wall = true;
-                BroadCast_Walls(ix, iy - 1, ix, iy);
-                Meet_hWallMatrix[iy - 1][ix] = 1;
-            }
-        }
-    }
-    
-    if (ix < MAP_SIZE - 1 && iy < MAP_SIZE)
-    {
-        if (vWallMatrix[iy][ix] && !Meet_vWallMatrix[iy][ix])
-        {
-            is_Meet_Wall = true;
-            BroadCast_Walls(ix, iy, ix + 1, iy);
-            Meet_vWallMatrix[iy][ix] = 1;
-        }
-        if (ix - 1 >= 0)
-        {
-            if (vWallMatrix[iy][ix - 1] && !Meet_vWallMatrix[iy][ix - 1])
-            {
-                is_Meet_Wall = true;
-                BroadCast_Walls(ix - 1, iy, ix, iy);
-                Meet_vWallMatrix[iy][ix - 1] = 1;
-            }
-        }
-    }
-    
-    //벽을 만나 업데이트 하는 경우가 생긴 경우
-    //모든 로봇 - Task에 대해 경로를 업데이트합니다.
-    if (is_Meet_Wall)
-    {
-        //if you meet wall, replan path about all task-robot DStar
-        for (int Robot_Index = 0; Robot_Index < NUM_ROBOT; Robot_Index++)
-            for (int Task_Index = 0; Task_Index < NUM_TASK; Task_Index++)
-            {
-                if (Flag_Item_Activate[Task_Index])
-                {
-#ifdef DLite
-                    robotList[Robot_Index].Robot_DStar[Task_Index]->replan();
-#else
-                    robotList[Robot_Index].Robot_DStar[Task_Index]->Dijkstra();
-#endif
-                }
-            }
-    }
-    
-    //기존에 알고있었던 패스가 재구성된 패스랑 다를 경우 false를 리턴합니다
-    
-    //아래부분부터는 구현해주셔야할 내용입니다.
-    //리턴값이 false일경우 1G이내의 비선점된 아이템을 서치하여 재할당합니다.
-    //그런 아이템이 없을 경우 의논하였던 대로 그리디하게 할당합니다.
-    //그리고 패스 업데이트를 다시 합니다.
-    //아마도 pathIndex 값을 재수정하셔야할 것 같습니다. (패스가 달라지므로)
-    //패스를 한번 리니어 서치해서 현재 위치와 같은 곳을 패스인덱스로 설정하시면 될 것 같습니다.
-    //cost = 거리 코스트 + task cost임을 기억하시고 서치하시면 될것같습니다.
-    //구현해주셔야할 내용 끝
-    
-    if (!is_path_same(pre_path, getPath(Index_Robot, AllocTask.taskId, 0)))
-    {
-        for (int item = 0; item < NUM_TASK; item++)
-        {
-            Change_Start(Index_Robot, item, robotcoord.x, robotcoord.y, 0);
-        }
-        return false;
-    }
-    else
-    {
-        //재구성된 패스가 이전 패스와 동일할 경우 위치를 다음 위치로 업데이트하고 true를 리턴합니다.
-        //if original path is same, execute updateposition
-        //return true
-        pathIndex++;
-        
-        
-        /*if (pathIndex < taskList[curr_task].path.size())
-         {
-         
-         robotcoord.x = taskList[curr_task].path.at(pathIndex).x;
-         robotcoord.y = taskList[curr_task].path.at(pathIndex).y;
-         }
-         else
-         {
-         pathIndex = 0;
-         }*/
-        
-        if (pathIndex < AllocTask.path.size())
-        {
-            totalCost += travelCost[robotcoord.x][robotcoord.y];
-            totalBlocks ++;
-            robotcoord.x = AllocTask.path.at(pathIndex).x;
-            robotcoord.y = AllocTask.path.at(pathIndex).y;
-        }
-        else
-        {
-            pathIndex = 0;
-        }
-        
-        return true;
-    }
-}
-
-///////////////////////////////////////////////////////////////////
-
 typedef struct edge
 {
     coordinate* node[2];
@@ -562,6 +54,7 @@ typedef struct alloc_task
 
 bool tree[NUM_TASK][NUM_TASK] = { false, };            // task들의 연결을 확인
 std::vector<edge> MSTree[2];                        // 각각 uniform 맵으로부터 만들어진 mst, random 맵으로부터 만들어진 mst
+// MSTree[0] : Type1, MSTree[1] : Type2
 // 0&2번 로봇이 random => 0번 맵, 1&3번 로봇이 uniform => 1번 맵
 
 int check_tree(int start, int end, int pre = INF)
@@ -578,14 +71,14 @@ int check_tree(int start, int end, int pre = INF)
     }
     return 0;
 }
+
 void clear_tree()
 {
     for (int i = 0; i < NUM_TASK; i++)
-    {
         for (int j = 0; j < NUM_TASK; j++)
             tree[i][j] = false;
-    }
 }
+
 // 초기화에만 false 입력, 2개 맵으로 부터의 mst는 동시에 업뎃
 void draw_MSTree()
 {
@@ -593,48 +86,42 @@ void draw_MSTree()
     {
         double task_graph[NUM_TASK][NUM_TASK] = { INF, };    // 각 task들 사이의 cost 값
         
+        //loop about total item
         for (int ii = 0; ii < NUM_TASK; ii++)
         {
+            //is item activated?
             if (Flag_Item_Activate[ii] == true)
             {
                 Change_Start(map_type, 0, itemCoord[ii].x, itemCoord[ii].y, 1);
-                for (int jj = 0; jj < NUM_TASK; jj++)
+                for (int jj = ii + 1; jj < NUM_TASK; jj++)
                 {
-                    if (ii != jj && Flag_Item_Activate[jj] == true)
+                    if(Flag_Item_Activate[jj] == true)
                     {
                         Change_Goal(map_type, 0, itemCoord[jj].x, itemCoord[jj].y, 1);
                         task_graph[ii][jj] = getCost(map_type, 0, 1);
+                        task_graph[jj][ii] = getCost(map_type, 0, 1);
                     }
                     else
+                    {
                         task_graph[ii][jj] = INF;
+                        task_graph[jj][ii] = INF;
+                    }
                 }
             }
             else
             {
                 for (int jj = 0; jj < NUM_TASK; jj++)
+                {
                     task_graph[ii][jj] = INF;
+                    task_graph[jj][ii] = INF;
+                }
             }
         }
         
-        /*printf("\ntask graph[%d]\n", map_type);
-         for (int i = 0; i < NUM_TASK; i++)
-         {
-         for (int j = 0; j < NUM_TASK; j++)
-         {
-         if (task_graph[i][j] == INF)
-         printf("INF\t");
-         else
-         printf("%.2f\t", task_graph[i][j]);
-         }
-         printf("\n");
-         }*/
-        
         int task_cnt = 0;
-        for (int i = 0; i < NUM_TASK; i++)
-        {
+        for (int i = 0; i < task_produced; i++)
             if (Flag_Item_Activate[i] == true)
                 task_cnt++;
-        }
         
         clear_tree();
         MSTree[map_type].clear();
@@ -800,6 +287,7 @@ void alloc_new_task(int index)
 
 int main()
 {
+    //original code start
     srand((unsigned int)time(NULL));
     
     char data;
@@ -857,6 +345,7 @@ int main()
     }
     fclose(fp);
     
+    int terreinMatrix[MAP_SIZE][MAP_SIZE];
     // map cost
     printf("print map\n\n");
     for (int ii = 0; ii < MAP_SIZE; ii++)
@@ -866,6 +355,9 @@ int main()
             terreinMatrix[ii][jj] = rand() % 200;
         }
     }
+    
+    int asdf;
+    
     asdf = rand() % 40 + 50;
     
     for (int index = 0; index < NUM_ROBOT; index++)
@@ -1105,26 +597,6 @@ int main()
     }
     printf("\n");
     
-    /*
-     coordinate currentPos;
-     std::vector <coordinate> asdff;
-     
-     currentPos.x = 0;
-     currentPos.y = 0;
-     
-     asdff.push_back(currentPos);
-     
-     currentPos.x = 1;
-     
-     asdff.push_back(currentPos);
-     
-     currentPos.y = 1;
-     
-     asdff.push_back(currentPos);
-     
-     robotList[0].assignTask(0, asdff, itemCoord);
-     */
-    
     
     int taskProgress[NUM_ROBOT] = { 0, };
     int movingProgress[NUM_ROBOT] = { 0, };
@@ -1135,8 +607,10 @@ int main()
     int count = 0;
     int time = 0;
     
-    int task_produced = NUM_TASK / 2;
+    task_produced = NUM_TASK / 2;
     int time_produced = TIME_MAX / 4;
+    
+    //original code end
     
     //initialize DStar_Lite Algorithm
     
@@ -1200,10 +674,17 @@ int main()
             for (int Robot_Index = 0; Robot_Index < NUM_ROBOT; Robot_Index++)
             {
                 for (int Task_Index = 0; Task_Index < NUM_TASK; Task_Index++)
+                {
                     if (Robot_Index % 2)
                         robotList[Robot_Index].Robot_DStar[Task_Index]->updateCell(ii, jj, cost[1]);
                     else
                         robotList[Robot_Index].Robot_DStar[Task_Index]->updateCell(ii, jj, cost[0]);
+#ifdef DLite
+                    robotList[Robot_Index].Robot_DStar[Task_Index]->replan();
+#else
+                    robotList[Robot_Index].Robot_DStar[Task_Index]->Dijkstra();
+#endif
+                }
             }
             
             //update Task-Task Cost
@@ -1212,6 +693,9 @@ int main()
         }
     }
     
+    //초기화 완료
+    
+    //Minimum Spanning Tree Draw
     draw_MSTree();
     task_alloc();
     
