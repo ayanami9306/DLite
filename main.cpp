@@ -4,6 +4,10 @@
 #include <time.h>
 #include <stdlib.h>
 #include "User_Defined_Function.h"
+#include <algorithm>
+#include "MST.h"
+
+using namespace std;
 
 int hWallMatrix[MAP_SIZE - 1][MAP_SIZE];
 int vWallMatrix[MAP_SIZE][MAP_SIZE - 1];
@@ -15,6 +19,19 @@ coordinate itemCoord[NUM_TASK];
 bool Flag_Item_Activate[NUM_TASK] = { false, };
 Dstar * Task_to_Task[2];
 int task_produced = 0;
+
+bool tree[NUM_TASK][NUM_TASK] = { false, }; // task들의 연결을 확인
+vector<edge> MSTree[2];                        // 각각 uniform 맵으로부터 만들어진 mst, random 맵으로부터 만들어진 mst
+// MSTree[0] : Type1, MSTree[1] : Type2
+// 0&2번 로봇이 random => 0번 맵, 1&3번 로봇이 uniform => 1번 맵
+
+// 초기화에만 false 입력, 2개 맵으로 부터의 mst는 동시에 업뎃
+
+typedef struct alloc_task
+{
+    int taskID;
+    double dis = INF;
+}alloc;
 
 void print_result(Robot  * robotList, int mode)
 {
@@ -39,124 +56,6 @@ void print_result(Robot  * robotList, int mode)
         
     }
     printf("\n");
-}
-
-typedef struct edge
-{
-    coordinate* node[2];
-    double dis;
-}edge;
-typedef struct alloc_task
-{
-    int taskID;
-    double dis = INF;
-}alloc;
-
-bool tree[NUM_TASK][NUM_TASK] = { false, };            // task들의 연결을 확인
-std::vector<edge> MSTree[2];                        // 각각 uniform 맵으로부터 만들어진 mst, random 맵으로부터 만들어진 mst
-// MSTree[0] : Type1, MSTree[1] : Type2
-// 0&2번 로봇이 random => 0번 맵, 1&3번 로봇이 uniform => 1번 맵
-
-int check_tree(int start, int end, int pre = INF)
-{
-    //printf("check(%d,%d)\n", start, end);
-    if (tree[start][end] == true)
-        return 1;
-    for (int i = 0; i < NUM_TASK; i++)
-    {
-        if (tree[start][i] == true && (i != pre))
-        {
-            if (check_tree(i, end, start)) return 1;
-        }
-    }
-    return 0;
-}
-
-void clear_tree()
-{
-    for (int i = 0; i < NUM_TASK; i++)
-        for (int j = 0; j < NUM_TASK; j++)
-            tree[i][j] = false;
-}
-
-// 초기화에만 false 입력, 2개 맵으로 부터의 mst는 동시에 업뎃
-void draw_MSTree()
-{
-    for (int map_type = 0; map_type < 2; map_type++)
-    {
-        double task_graph[NUM_TASK][NUM_TASK] = { INF, };    // 각 task들 사이의 cost 값
-        
-        //loop about total item
-        for (int ii = 0; ii < NUM_TASK; ii++)
-        {
-            //is item activated?
-            if (Flag_Item_Activate[ii] == true)
-            {
-                Change_Start(map_type, 0, itemCoord[ii].x, itemCoord[ii].y, 1);
-                for (int jj = ii + 1; jj < NUM_TASK; jj++)
-                {
-                    if(Flag_Item_Activate[jj] == true)
-                    {
-                        Change_Goal(map_type, 0, itemCoord[jj].x, itemCoord[jj].y, 1);
-                        task_graph[ii][jj] = getCost(map_type, 0, 1);
-                        task_graph[jj][ii] = getCost(map_type, 0, 1);
-                    }
-                    else
-                    {
-                        task_graph[ii][jj] = INF;
-                        task_graph[jj][ii] = INF;
-                    }
-                }
-            }
-            else
-            {
-                for (int jj = 0; jj < NUM_TASK; jj++)
-                {
-                    task_graph[ii][jj] = INF;
-                    task_graph[jj][ii] = INF;
-                }
-            }
-        }
-        
-        int task_cnt = 0;
-        for (int i = 0; i < task_produced; i++)
-            if (Flag_Item_Activate[i] == true)
-                task_cnt++;
-        
-        clear_tree();
-        MSTree[map_type].clear();
-        double mini = INF;
-        //printf("\n<map type> %d\n", map_type);
-        while (MSTree[map_type].size() < task_cnt - 1)
-        {
-            int tmp_ii, tmp_jj;
-            for (int ii = 0; ii < NUM_TASK; ii++)
-            {
-                for (int jj = ii; jj < NUM_TASK; jj++)
-                {
-                    if (task_graph[ii][jj] < mini)
-                    {
-                        if (!check_tree(ii, jj))
-                        {
-                            mini = task_graph[ii][jj];
-                            tmp_ii = ii;
-                            tmp_jj = jj;
-                        }
-                    }
-                }
-            }
-            edge minimum;
-            minimum.node[0] = &itemCoord[tmp_ii];
-            minimum.node[1] = &itemCoord[tmp_jj];
-            minimum.dis = mini;
-            MSTree[map_type].push_back(minimum);
-            tree[tmp_ii][tmp_jj] = true;
-            tree[tmp_jj][tmp_ii] = true;
-            mini = INF;
-            //printf("PUSH : %d(%d,%d) - %d(%d,%d)\n",tmp_ii, itemCoord[tmp_ii].x, itemCoord[tmp_ii].y, tmp_jj, itemCoord[tmp_jj].x, itemCoord[tmp_jj].y);
-        }
-    }
-    printf("draw MSTree Fin.\n");
 }
 
 bool check_task(int robotID, int taskID, alloc* robo)
@@ -679,17 +578,24 @@ int main()
                         robotList[Robot_Index].Robot_DStar[Task_Index]->updateCell(ii, jj, cost[1]);
                     else
                         robotList[Robot_Index].Robot_DStar[Task_Index]->updateCell(ii, jj, cost[0]);
-#ifdef DLite
-                    robotList[Robot_Index].Robot_DStar[Task_Index]->replan();
-#else
-                    robotList[Robot_Index].Robot_DStar[Task_Index]->Dijkstra();
-#endif
                 }
             }
             
             //update Task-Task Cost
             Task_to_Task[0]->updateCell(ii, jj, cost[0]);
             Task_to_Task[1]->updateCell(ii, jj, cost[1]);
+        }
+    }
+
+    for (int Robot_Index = 0; Robot_Index < NUM_ROBOT; Robot_Index++)
+    {
+        for (int Task_Index = 0; Task_Index < task_produced; Task_Index++)
+        {
+#ifdef DLite
+            robotList[Robot_Index].Robot_DStar[Task_Index]->replan();
+#else
+            robotList[Robot_Index].Robot_DStar[Task_Index]->Dijkstra();
+#endif
         }
     }
     
@@ -830,7 +736,8 @@ int main()
                     doneList[robotList[index].AllocTask.taskId] = 1;
                     
                     //robotList[index].curr_task++;
-                    robotList[index].finTask[robotList[index].AllocTask.taskId] = true;
+                    //toedit
+                    //robotList[index].finTask[robotList[index].AllocTask.taskId] = true;
                     robotList[index].status = IDLE;
                     
                     taskProgress[index] = 0;
@@ -889,7 +796,8 @@ int main()
     
     for (int index = 0; index < NUM_ROBOT; index++)
     {
-        robotList[index].calcCost();
+        //toedit
+        //robotList[index].calcCost();
         
         printf("robot %d remaining energy %d\n", index, robotList[index].energy);
     }
