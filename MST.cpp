@@ -82,9 +82,9 @@ void draw_MSTree()
         {
             if(merge(task_graph[i].from, task_graph[i].to, parent))
             {
-                temp_element.node[0] = &itemCoord[task_graph[i].from];
-                temp_element.node[1] = &itemCoord[task_graph[i].to];
                 temp_element.dis = task_graph[i].distance;
+                temp_element.index[0] = task_graph[i].from;
+                temp_element.index[1] = task_graph[i].to;
                 MSTree[map_type].push_back(temp_element);
                 tree[task_graph[i].from][task_graph[i].to] = true;
                 tree[task_graph[i].to][task_graph[i].from] = true;

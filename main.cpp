@@ -27,36 +27,13 @@ vector<edge> MSTree[2];                        // 각각 uniform 맵으로부터
 
 // 초기화에만 false 입력, 2개 맵으로 부터의 mst는 동시에 업뎃
 
+void print_result(Robot  * robotList, int mode);
+
 typedef struct alloc_task
 {
     int taskID;
     double dis = INF;
 }alloc;
-
-void print_result(Robot  * robotList, int mode)
-{
-    int totalConsumption = 0;
-    
-    printf("\n<results>\n");
-    
-    
-    totalConsumption = 0;
-    
-    for (int ii = 0; ii < NUM_ROBOT; ii++)
-    {
-        printf("robot %d energy : %d\n", ii, robotList[ii].totalCost);
-        
-        totalConsumption += robotList[ii].totalCost;
-    }
-    printf("energy consumption total : %d\n", totalConsumption);
-    
-    for (int ii = 0; ii < NUM_ROBOT; ii++)
-    {
-        printf("robot %d path length : %d\n", ii, robotList[ii].totalBlocks);
-        
-    }
-    printf("\n");
-}
 
 bool check_task(int robotID, int taskID, alloc* robo)
 {
@@ -83,46 +60,97 @@ bool check_task(int robotID, int taskID, alloc* robo)
     }
     return true;
 }
-// 초기화에만 false 입력
+
 void task_alloc()
 {
+    vector<task_to_task_cost> task_dis;
+    task_to_task_cost task_dis_element;
     alloc robot[NUM_ROBOT];
-    double task_dis[NUM_ROBOT][NUM_TASK];
     for (int ii = 0; ii < NUM_ROBOT; ii++)
     {
         for (int jj = 0; jj < NUM_TASK; jj++)
         {
             if (Flag_Item_Activate[jj] == true)
             {
-                Change_Start(ii % 2, jj, robotList[ii].robotcoord.x, robotList[ii].robotcoord.y, 0);
-                Change_Goal(ii % 2, jj, itemCoord[jj].x, itemCoord[jj].y, 0);
-                task_dis[ii][jj] = getCost(ii, jj, 0) + robotList[ii].taskCost[jj];
-                
+                Change_Start(ii, jj, robotList[ii].robotcoord.x, robotList[ii].robotcoord.y, 0);
+                task_dis_element.from = ii;
+                task_dis_element.to = jj;
+                task_dis_element.distance = getCost(ii, jj, 0) + robotList[ii].taskCost[jj];
+                task_dis.push_back(task_dis_element);
             }
-            else
-                task_dis[ii][jj] = INF;
         }
     }
     
-    for (int robo = 0; robo < NUM_ROBOT; robo++)
+    sort(task_dis.begin(), task_dis.end(), cmp_task_task);
+    
+    for (int i = 0; i < task_dis.size(); i++)
     {
-        int min = INF;
-        int tmp_ii, tmp_jj;
-        for (int ii = 0; ii < NUM_ROBOT; ii++)
+        bool chk = true;
+        int current_bot = task_dis[i].from;
+        int to_task = task_dis[i].to;
+        if(robot[current_bot].dis == INF)
         {
-            for (int jj = 0; jj < NUM_TASK; jj++)
+            //search tasks within 1G
+            for(int tree_index = 0; tree_index < 2; tree_index++)
             {
-                if (task_dis[ii][jj] < min && check_task(ii, jj, robot))
+                for(int element_i = 0; element_i < MSTree[tree_index].size(); element_i++)
                 {
-                    min = task_dis[ii][jj];
-                    tmp_ii = ii;
-                    tmp_jj = jj;
+                    if(MSTree[tree_index][element_i].index[0] == to_task)
+                    {
+                        int G1_Task = MSTree[tree_index][element_i].index[1];
+                        for(int robo_index = 0; robo_index < NUM_ROBOT; robo_index++)
+                            if(robo_index != current_bot)
+                                if((robot[robo_index].taskID == G1_Task && robot[robo_index].dis != INF) || (robot[robo_index].taskID == to_task && robot[robo_index].dis != INF))
+                                {
+                                    chk = false;
+                                    break;
+                                }
+                    }
+                    else if(MSTree[tree_index][element_i].index[1] == to_task)
+                    {
+                        int G1_Task = MSTree[tree_index][element_i].index[0];
+                        for(int robo_index = 0; robo_index < NUM_ROBOT; robo_index++)
+                            if(robo_index != current_bot)
+                                if((robot[robo_index].taskID == G1_Task && robot[robo_index].dis != INF) || (robot[robo_index].taskID == to_task && robot[robo_index].dis != INF))
+                                {
+                                    chk = false;
+                                    break;
+                                }
+                    }
+                    if(!chk) break;
                 }
+                if(!chk) break;
+            }
+            
+            if(chk)
+            {
+                robot[current_bot].taskID = to_task;
+                robot[current_bot].dis = task_dis[i].distance;
+                task_dis[i].distance = INF;
             }
         }
-        robot[tmp_ii].taskID = tmp_jj;
-        robot[tmp_ii].dis = min;
-        min = INF;
+    }
+    
+    //not matched? greedy
+    for(int i = 0; i < task_dis.size(); i++)
+    {
+        if(task_dis[i].distance != INF && robot[task_dis[i].from].dis == INF)
+        {
+            int current_bot = task_dis[i].from;
+            int to_task = task_dis[i].to;
+            bool chk = true;
+            for(int robo_index = 0; robo_index < NUM_ROBOT; robo_index++)
+                if(robot[robo_index].taskID == to_task)
+                {
+                    chk = false;
+                    break;
+                }
+            if(chk)
+            {
+                robot[current_bot].taskID = to_task;
+                robot[current_bot].dis = task_dis[i].distance;
+            }
+        }
     }
     
     printf("task Allocation\n");
@@ -182,7 +210,19 @@ void alloc_new_task(int index)
     robotList[index].AllocTask.taskId = min_taskID;
     robotList[index].AllocTask.taskcoord = itemCoord[min_taskID];
 }
-///////////////////////////////////////////////////////////////////
+
+
+/***************************************************************
+ 
+ 
+ 
+ 
+                        MAIN START
+ 
+ 
+ 
+ 
+ **************************************************************/
 
 int main()
 {
@@ -587,6 +627,7 @@ int main()
         }
     }
 
+    //first planning
     for (int Robot_Index = 0; Robot_Index < NUM_ROBOT; Robot_Index++)
     {
         for (int Task_Index = 0; Task_Index < task_produced; Task_Index++)
@@ -633,7 +674,7 @@ int main()
                         same = 1;
                     }
                 }
-                for (int jj = 0; jj < task_produced; jj++)
+                for (int jj =  0; jj < task_produced; jj++)
                 {
                     if (newItem.x == itemCoord[jj].x && newItem.y == itemCoord[jj].y)
                     {
@@ -647,12 +688,15 @@ int main()
             itemCoord[task_produced].y = newItem.y;
             Flag_Item_Activate[task_produced] = true;
             
+            for(int Robot_Index = 0; Robot_Index < NUM_ROBOT; Robot_Index++)
+                Change_Goal(Robot_Index, task_produced, newItem.x, newItem.y, 0);
+            
             printf("move item %d to (%d, %d)\n", task_produced, newItem.x, newItem.y);
             
             task_produced++;
             
             present_task++;
-            remain_task--;
+            remain_task++;
             
             draw_MSTree();
             task_alloc();
@@ -821,4 +865,40 @@ int main()
         for (int task_index = 0; task_index < NUM_TASK; task_index++)
             delete robotList[robo_index].Robot_DStar[task_index];
     }
+}
+/***************************************************************
+ 
+ 
+ 
+ 
+                         MAIN END
+ 
+ 
+ 
+ 
+ **************************************************************/
+
+void print_result(Robot  * robotList, int mode)
+{
+    int totalConsumption = 0;
+    
+    printf("\n<results>\n");
+    
+    
+    totalConsumption = 0;
+    
+    for (int ii = 0; ii < NUM_ROBOT; ii++)
+    {
+        printf("robot %d energy : %d\n", ii, robotList[ii].totalCost);
+        
+        totalConsumption += robotList[ii].totalCost;
+    }
+    printf("energy consumption total : %d\n", totalConsumption);
+    
+    for (int ii = 0; ii < NUM_ROBOT; ii++)
+    {
+        printf("robot %d path length : %d\n", ii, robotList[ii].totalBlocks);
+        
+    }
+    printf("\n");
 }

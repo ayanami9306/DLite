@@ -3,7 +3,7 @@
 
 typedef struct edge
 {
-    coordinate* node[2];
+    int index[2];
     double dis;
 }edge;
 

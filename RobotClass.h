@@ -42,6 +42,14 @@ public:
         y = 0;
     }
     
+    bool operator == (const coordinate &s2) const {
+        return ((x == s2.x) && (y == s2.y));
+    }
+    
+    bool operator != (const coordinate &s2) const {
+        return ((x != s2.x) || (y != s2.y));
+    }
+    
     //~coordinate();
 };
 
