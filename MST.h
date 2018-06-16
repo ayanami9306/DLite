@@ -1,5 +1,7 @@
+#pragma once
 #include <stdio.h>
 #include "RobotClass.h"
+#include "Variables.h"
 
 typedef struct edge
 {

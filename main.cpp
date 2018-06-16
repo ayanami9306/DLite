@@ -7,6 +7,8 @@
 #include <algorithm>
 #include "MST.h"
 #include "Task_Allocation.h"
+#include "time.h"
+#include "FloodFill.h"
 
 using namespace std;
 
@@ -42,69 +44,147 @@ void print_result(Robot  * robotList, int mode);
  
  **************************************************************/
 
-int main()
+int main(int argc, char *argv[])
 {
     //original code start
     srand((unsigned int)time(NULL));
     
-    char data;
-    
-    FILE  * fp;
-    
-    fp = fopen("hwall10.txt", "r");
-    
-    int i = 0;
-    int j = 0;
-    
-    while (fscanf(fp, "%c", &data) != EOF)
+    char config[10];
+    char output_filename[100];
+    strcpy(config, argv[1]);
+    strcpy(output_filename, argv[2]);
+    FILE *fp;
+    if ((fp = fopen(output_filename, "r")))
     {
-        if (data == ' ')
+        fclose(fp);
+    }
+    else
+    {
+        fp = fopen(output_filename, "w");
+        fprintf(fp, "E_R1,B_R1,E_R2,B_R2,E_R3,B_R3,E_R4,B_R4,E_total,B_Total,RealTime,SimTime,Task_Finish,Task_Total\n");
+        fclose(fp);
+    }
+    int level = -1;
+    
+    if(config[0] == 69 || config[0] == 72 || config[0] == 78)
+    {
+        //input 'E' or 'N' or 'H'
+        switch (config[0])
         {
-            j++;
-        }
-        else if (data == '\n')
-        {
-            i++;
-            
-            j = 0;
-        }
-        else if (data != 13)
-        {
-            hWallMatrix[i][j] = data - 48;
-            
+            case 72:
+                level = 5; // hard
+            case 78:
+                level = 3; // normal
+                break;
+            case 69:
+                level = 1; // easy
+                break;
         }
     }
-    
-    
-    fclose(fp);
-    fp = fopen("vwall10.txt", "r");
-    
-    i = 0;
-    j = 0;
-    while (fscanf(fp, "%c", &data) != EOF)
+    else
     {
-        if (data == ' ')
-        {
-            j++;
-        }
-        else if (data == '\n')
-        {
-            
-            i++;
-            
-            j = 0;
-        }
-        else if (data != 13)
-        {
-            vWallMatrix[i][j] = data - 48;
-            
-        }
+        printf("ERROR : input right Map Level\n\n");
+        exit(9);
     }
-    fclose(fp);
+    ff floodflip(MAP_SIZE, MAP_SIZE);
+    int map_block;
+    bool exit_condition = false;
+    while (!exit_condition)
+    {
+        
+        for (int ii = 0; ii < MAP_SIZE; ii++)
+            for (int jj = 0; jj < MAP_SIZE - 1; jj++)
+            {
+                int tmp = rand() % 10;
+                if (tmp < level)
+                    vWallMatrix[ii][jj] = 1;
+            }
+        for (int ii = 0; ii < MAP_SIZE - 1; ii++)
+            for (int jj = 0; jj < MAP_SIZE; jj++)
+            {
+                int tmp = rand() % 10;
+                if (tmp < level)
+                    hWallMatrix[ii][jj] = 1;
+            }
+        
+        map_block = floodflip.check_map();
+        //floodflip.print_map(V_map, H_map);
+        //cout << "Number of Block = " << map_block << endl;
+        
+        while (map_block != 1)
+        {
+            floodflip.edit_map(level);
+            map_block = floodflip.check_map();
+            //floodflip.print_map(V_map, H_map);
+            //cout << "Number of Block = " << map_block << endl;
+        }
+        if(map_block == 1)
+            exit_condition = true;
+    }
+    
+    /*
+     char data;
+     
+     
+     FILE  * fp;
+     
+     fp = fopen("hwall10.txt", "r");
+     
+     int i = 0;
+     int j = 0;
+     
+     while (fscanf(fp, "%c", &data) != EOF)
+     {
+     if (data == ' ')
+     {
+     j++;
+     }
+     else if (data == '\n')
+     {
+     i++;
+     
+     j = 0;
+     }
+     else if (data != 13)
+     {
+     hWallMatrix[i][j] = data - 48;
+     
+     }
+     }
+     
+     
+     fclose(fp);
+     fp = fopen("vwall10.txt", "r");
+     
+     i = 0;
+     j = 0;
+     while (fscanf(fp, "%c", &data) != EOF)
+     {
+     if (data == ' ')
+     {
+     j++;
+     }
+     else if (data == '\n')
+     {
+     
+     i++;
+     
+     j = 0;
+     }
+     else if (data != 13)
+     {
+     vWallMatrix[i][j] = data - 48;
+     
+     }
+     }
+     fclose(fp);
+     */
     
     int terreinMatrix[MAP_SIZE][MAP_SIZE];
     // map cost
+#ifdef IS_PRINT
     printf("print map\n\n");
+#endif
     for (int ii = 0; ii < MAP_SIZE; ii++)
     {
         for (int jj = 0; jj < MAP_SIZE; jj++)
@@ -142,7 +222,7 @@ int main()
         itemCoord[ii].y = 11;
     }
     
-    
+#ifdef IS_PRINT
     for (int ii = 0; ii < MAP_SIZE; ii++)
     {
         for (int jj = 0; jj < MAP_SIZE; jj++)
@@ -241,6 +321,7 @@ int main()
         //    fprintf(fp, "\n");
     }
     printf("\n");
+#endif
     
     
     
@@ -276,8 +357,9 @@ int main()
         robotList[ii].robotcoord.x = newItem.x;
         robotList[ii].robotcoord.y = newItem.y;
         
-        
+#ifdef IS_PRINT
         printf("move robot %d to (%d, %d)\n", ii, newItem.x, newItem.y);
+#endif
     }
     
     
@@ -314,7 +396,9 @@ int main()
         itemCoord[ii].x = newItem.x;
         itemCoord[ii].y = newItem.y;
         
+#ifdef IS_PRINT
         printf("move item %d to (%d, %d)\n", ii, newItem.x, newItem.y);
+#endif
     }
     
     
@@ -333,6 +417,7 @@ int main()
             robotList[index].taskCost[ii] = tempCost[index % 2][ii];
         }
     }
+#ifdef IS_PRINT
     printf("\n");
     
     
@@ -353,6 +438,7 @@ int main()
         printf("\n");
     }
     printf("\n");
+#endif
     
     
     int taskProgress[NUM_ROBOT] = { 0, };
@@ -378,6 +464,10 @@ int main()
     Task_to_Task[1] = new Dstar();
     Task_to_Task[0]->init(0, 0, 1, 1);
     Task_to_Task[1]->init(0, 0, 1, 1);
+    
+    //TIME START
+    time_t startTime = clock();
+    
     
     //initialize Robot-Task DStar
     for (int index = 0; index < NUM_ROBOT; index++)
@@ -444,7 +534,7 @@ int main()
             Task_to_Task[1]->updateCell(ii, jj, cost[1]);
         }
     }
-
+    
     //first planning
     for (int Robot_Index = 0; Robot_Index < NUM_ROBOT; Robot_Index++)
     {
@@ -474,7 +564,9 @@ int main()
         // spawn new task
         if (time == time_produced && task_produced < NUM_TASK)
         {
+#ifdef IS_PRINT
             printf("at time %d : ", time);
+#endif
             time_produced += TIME_MAX / NUM_TASK / 2;
             same = 1;
             while (same == 1)
@@ -508,9 +600,9 @@ int main()
             
             for(int Robot_Index = 0; Robot_Index < NUM_ROBOT; Robot_Index++)
                 Change_Goal(Robot_Index, task_produced, newItem.x, newItem.y, 0);
-            
+#ifdef IS_PRINT
             printf("move item %d to (%d, %d)\n", task_produced, newItem.x, newItem.y);
-            
+#endif
             task_produced++;
             
             present_task++;
@@ -531,13 +623,17 @@ int main()
                     if(robotList[index].energy >= robotList[index].getTravelCost())
                     {
                         movingProgress[index] += robotList[index].getTravelCost();
+#ifdef IS_PRINT
                         printf("robot %d is on (%d,%d) to move\n", index, robotList[index].robotcoord.x, robotList[index].robotcoord.y);
+#endif
                         robotList[index].totalCost += robotList[index].getTravelCost();
                         robotList[index].totalBlocks ++;
                     }
                     else
                     {
+#ifdef IS_PRINT
                         printf("robot %d has less energy : STOP\n", index);
+#endif
                         robotList[index].status = STOP;
                         robotList[index].AllocTask.taskId = -1;
                         continue;
@@ -558,8 +654,10 @@ int main()
                     robotList[index].pathIndex = 0;
                     movingProgress[index] = 0;
                     reach[index] = 0;
+#ifdef IS_PRINT
                     printf("robot %d arrive at task %d (%d,%d)\n", index, robotList[index].AllocTask.taskId,
                            robotList[index].AllocTask.taskcoord.x, robotList[index].AllocTask.taskcoord.y);
+#endif
                 }
                 else if (movingProgress[index] <= 0)
                 {
@@ -586,11 +684,16 @@ int main()
                     {
                         taskProgress[index] += robotList[index].getTaskCost();
                         Flag_Item_Activate[robotList[index].AllocTask.taskId] = false;
-                        printf("robot %d is on (%d,%d) to work\n", index, robotList[index].robotcoord.x, robotList[index].robotcoord.y);
+#ifdef IS_PRINT
+                        printf("robot %d is on (%d,%d) to work\n", index,
+                               robotList[index].robotcoord.x, robotList[index].robotcoord.y);
+#endif
                     }
                     else
                     {
+#ifdef IS_PRINT
                         printf("robot %d has less energy : STOP\n", index);
+#endif
                         robotList[index].status = STOP;
                         robotList[index].AllocTask.taskId = -1;
                         continue;
@@ -611,7 +714,9 @@ int main()
                     taskProgress[index] = 0;
                     robotList[index].totalCost += robotList[index].getTaskCost();
                     
+#ifdef IS_PRINT
                     printf("robot %d finished task %d\n", index, robotList[index].AllocTask.taskId);
+#endif
                     
                     doneList[robotList[index].AllocTask.taskId] = 1;
                     
@@ -631,7 +736,9 @@ int main()
             //if state is IDLE
             else if (robotList[index].status == IDLE)
             {
+#ifdef IS_PRINT
                 printf("robot %d is idle\n", index);
+#endif
                 
                 if (robotList[index].AllocTask.taskId > -1)
                 {
@@ -660,14 +767,17 @@ int main()
         }
         if (count == NUM_TASK)
         {
+#ifdef IS_PRINT
             printf("finished task at time %d\n", time);
+#endif
             exitCondition = 1;
         }
         
     }
     
+#ifdef IS_PRINT
     printf("\n===================================================================================\n");
-        printf("number of task : %d / finished task : %d / remain task : %d", task_produced, finished_task, present_task);
+    printf("number of task : %d / finished task : %d / remain task : %d", task_produced, finished_task, present_task);
     printf("\n===================================================================================\n\n");
     
     for (int index = 0; index < NUM_ROBOT; index++)
@@ -683,9 +793,24 @@ int main()
         
     }
     printf("\n");
+#endif
     
+    //file print
+    time_t endTime = clock();
+    int Total_Consumption = 0, Total_Blocks = 0;
+    fp = fopen(output_filename, "a");
+    for(int robo_index=0; robo_index<NUM_ROBOT; robo_index++)
+    {
+        Total_Consumption += robotList[robo_index].totalCost;
+        Total_Blocks += robotList[robo_index].totalBlocks;
+        fprintf(fp, "%d,%d,",robotList[robo_index].totalCost, robotList[robo_index].totalBlocks);
+    }
+    fprintf(fp, "%d,%d,%.6lf,%d,%d,%d\n",Total_Consumption,Total_Blocks,(float)(endTime-startTime)/(CLOCKS_PER_SEC), time, finished_task, task_produced);
+    fclose(fp);
     
+#ifdef IS_PRINT
     print_result(robotList, 0);
+#endif
     
     delete Task_to_Task[0];
     delete Task_to_Task[1];

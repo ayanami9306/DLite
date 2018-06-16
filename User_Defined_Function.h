@@ -1,4 +1,6 @@
+#pragma once
 #include "RobotClass.h"
+#include "Variables.h"
 
 void PrintPath(int RobotIndex, int ItemIndex, int code);
 int getCost(int RobotIndex, int ItemIndex, int code);

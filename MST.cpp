@@ -58,7 +58,6 @@ void draw_MSTree()
         }
         
         MSTree[map_type].clear();
-        //printf("\n<map type> %d\n", map_type);
         
         //sort task_graph order by ascending
         sort(task_graph.begin(), task_graph.end(), cmp_task_task);
@@ -80,5 +79,4 @@ void draw_MSTree()
             }
         }
     }
-    //printf("draw MSTree Fin.\n");
 }

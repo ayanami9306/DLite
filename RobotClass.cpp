@@ -24,8 +24,9 @@ void Robot::assignTask(int taskId, std::vector<coordinate> inputPath, coordinate
         next.x = itemList[taskId].x;
         next.y = itemList[taskId].y;
         
-        
+#ifdef IS_PRINT
         printf("path assigned from Robot %d(%d, %d) to Item %d(%d, %d)\n", Index_Robot,current.x, current.y, taskId, next.x, next.y);
+#endif
         AllocTask.taskId = taskId;
         AllocTask.path = inputPath;
         AllocTask.taskcoord.x = next.x;
@@ -35,7 +36,9 @@ void Robot::assignTask(int taskId, std::vector<coordinate> inputPath, coordinate
     }
     else
     {
+#ifdef IS_PRINT
         printf("ERROR : taskID is invalid");
+#endif
     }
 }
 

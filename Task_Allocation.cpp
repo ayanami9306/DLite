@@ -108,8 +108,10 @@ void alloc_new_task(int index)
     
     if(to_task != min_taskID)
     {
+#ifdef IS_PRINT
         printf("task re-Allocation\n");
         printf("robot %d => task %d (%d,%d)\n", index, min_taskID, itemCoord[min_taskID].x, itemCoord[min_taskID].y);
+#endif
     }
     robotList[index].pre_path = getPath(index, robotList[index].AllocTask.taskId, 0);
 }
@@ -214,8 +216,9 @@ void task_alloc()
             }
         }
     }
-    
+#ifdef IS_PRINT
     printf("\n\ntask Allocation\n");
+#endif
     for (int ii = 0; ii < NUM_ROBOT; ii++)
     {
         if(robotList[ii].status != WORKING)
@@ -223,12 +226,16 @@ void task_alloc()
             robotList[ii].AllocTask.taskId = alloc_robot[ii].taskID;
             robotList[ii].AllocTask.taskcoord = itemCoord[alloc_robot[ii].taskID];
             robotList[ii].assignTask(alloc_robot[ii].taskID, getPath(ii, alloc_robot[ii].taskID, 0), itemCoord);
+#ifdef IS_PRINT
             printf("robot %d => task %d (%d,%d)\n", ii, alloc_robot[ii].taskID, itemCoord[alloc_robot[ii].taskID].x, itemCoord[alloc_robot[ii].taskID].y);
+#endif
             robotList[ii].pre_path = getPath(ii, robotList[ii].AllocTask.taskId, 0);
         }
         else
         {
+#ifdef IS_PRINT
             printf("robot %d is working now\n", ii);
+#endif
         }
     }
 }

@@ -25,6 +25,7 @@ void PrintPath(int RobotIndex, int ItemIndex, int code)
 #else
         mypath = temp_robot->Robot_DStar[ItemIndex]->getDijkstraPath();
 #endif
+#ifdef IS_PRINT
         list<state>::iterator iter;
         printf("Robot: %d(%d,%d), Task : %d(%d,%d)\n-------------\n", RobotIndex, temp_robot->robotcoord.x, temp_robot->robotcoord.y, ItemIndex, itemCoord[ItemIndex].x, itemCoord[ItemIndex].y);
         for (iter = mypath.begin(); iter != mypath.end(); iter++)
@@ -32,6 +33,7 @@ void PrintPath(int RobotIndex, int ItemIndex, int code)
             printf("%d, %d\n", iter->x, iter->y);
         }
         printf("-----------------------\n");
+#endif
     }
     else
     {
@@ -41,6 +43,7 @@ void PrintPath(int RobotIndex, int ItemIndex, int code)
 #else
         mypath = Task_to_Task[RobotIndex]->getDijkstraPath();
 #endif
+#ifdef IS_PRINT
         list<state>::iterator iter;
         printf("-------------\n");
         for (iter = mypath.begin(); iter != mypath.end(); iter++)
@@ -48,6 +51,7 @@ void PrintPath(int RobotIndex, int ItemIndex, int code)
             printf("%d, %d\n", iter->x, iter->y);
         }
         printf("-----------------------\n");
+#endif
     }
 }
 

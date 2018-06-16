@@ -252,7 +252,9 @@ int Dstar::computeShortestPath() {
            (getRHS(s_start) != getG(s_start)))) {
         
         if (k++ > maxSteps) {
+#ifdef IS_PRINT
             fprintf(stderr, "At maxsteps\n");
+#endif
             return -1;
         }
         
@@ -425,7 +427,9 @@ double Dstar::cost(state a, state b)
     
     if (cellHash.count(a) == 0)
     {
+#ifdef IS_PRINT
         printf("ERROR!!!!!!!! Check your Code!!!!!!!!!!!!!");
+#endif
         return C1;
     }
     
@@ -436,7 +440,9 @@ double Dstar::cost(state a, state b)
     
     else
     {
+#ifdef IS_PRINT
         printf("ERROR!!!!! 8-way????");
+#endif
         return 99999999;
     }
     
@@ -704,7 +710,9 @@ bool Dstar::replan(){
     int res = computeShortestPath();
     //printf("res: %d ols: %d ohs: %d tk: [%f %f] sk: [%f %f] sgr: (%f,%f)\n",res,openList.size(),openHash.size(),openList.top().k.first,openList.top().k.second, s_start.k.first, s_start.k.second,getRHS(s_start),getG(s_start));
     if (res < 0) {
+#ifdef IS_PRINT
         fprintf(stderr, "NO PATH TO GOAL\n");
+#endif
         return false;
     }
     list<state> n;
@@ -714,7 +722,9 @@ bool Dstar::replan(){
     state cur = s_start;
     
     if (isinf(getG(s_start))) {
+#ifdef IS_PRINT
         fprintf(stderr, "NO PATH TO GOAL\n");
+#endif
         return false;
     }
     while(cur != s_goal) {
@@ -724,7 +734,9 @@ bool Dstar::replan(){
         getSucc(cur, n);
         
         if (n.empty()) {
+#ifdef IS_PRINT
             fprintf(stderr, "NO PATH TO GOAL\n");
+#endif
             return false;
         }
         

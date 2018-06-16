@@ -3,25 +3,7 @@
 #include <stdio.h>
 #include <vector>
 #include "Dstar.h"
-
-#define NUM_ROBOT 4
-#define NUM_TASK 16
-#define MAX_ENERGY 2000
-#define TIME_MAX 400
-
-#define IDLE 0
-#define WORKING 1
-#define MOVING 2
-#define STOP 3
-
-#define UP 'w'
-#define DOWN 's'
-#define LEFT 'a'
-#define RIGHT 'd'
-
-#define DLite
-
-#define INF 999999
+#include "Variables.h"
 
 using namespace std;
 

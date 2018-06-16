@@ -1,3 +1,4 @@
+#pragma once
 #ifndef DSTAR_H
 #define DSTAR_H
 
@@ -10,8 +11,8 @@
 #include <unordered_map>
 #include <limits>
 #include <functional>
+#include "Variables.h"
 
-#define MAP_SIZE 10
 
 using namespace std;
 
