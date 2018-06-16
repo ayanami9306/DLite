@@ -1,5 +1,6 @@
 #include "MST.h"
 #include "User_Defined_Function.h"
+#include <algorithm>
 
 extern vector<edge> MSTree[2];
 extern bool Flag_Item_Activate[NUM_TASK];

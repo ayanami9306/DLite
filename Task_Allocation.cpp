@@ -1,6 +1,7 @@
 #include "Task_Allocation.h"
 #include "User_Defined_Function.h"
 #include "MST.h"
+#include <algorithm>
 
 extern bool Flag_Item_Activate[NUM_TASK];
 extern Dstar * Task_to_Task[2];

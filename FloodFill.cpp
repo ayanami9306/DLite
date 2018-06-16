@@ -2,6 +2,7 @@
 #include <iostream>
 #include <time.h>
 #include <vector>
+#include "string.h"
 
 extern int hWallMatrix[MAP_SIZE - 1][MAP_SIZE];
 extern int vWallMatrix[MAP_SIZE][MAP_SIZE - 1];

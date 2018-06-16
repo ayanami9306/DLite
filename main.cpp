@@ -4,11 +4,11 @@
 #include <time.h>
 #include <stdlib.h>
 #include "User_Defined_Function.h"
-#include <algorithm>
 #include "MST.h"
 #include "Task_Allocation.h"
 #include "time.h"
 #include "FloodFill.h"
+#include "string.h"
 
 using namespace std;
 
