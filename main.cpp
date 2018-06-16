@@ -780,7 +780,7 @@ int main(int argc, char *argv[])
     
 #ifdef IS_PRINT
     printf("\n===================================================================================\n");
-    printf("number of task : %d / finished task : %d / remain task : %d", task_produced, finished_task, present_task);
+    printf("number of task : %d / finished task : %d / remain task : %d", task_produced, count, present_task);
     printf("\n===================================================================================\n\n");
     
     for (int index = 0; index < NUM_ROBOT; index++)
@@ -808,7 +808,7 @@ int main(int argc, char *argv[])
         Total_Blocks += robotList[robo_index].totalBlocks;
         fprintf(fp, "%d,%d,",robotList[robo_index].totalCost, robotList[robo_index].totalBlocks);
     }
-    fprintf(fp, "%d,%d,%.6lf,%d,%d,%d\n",Total_Consumption,Total_Blocks,(float)(endTime-startTime)/(CLOCKS_PER_SEC/1000), time, finished_task, task_produced);
+    fprintf(fp, "%d,%d,%.6lf,%d,%d,%d\n",Total_Consumption,Total_Blocks,(float)(endTime-startTime)/(CLOCKS_PER_SEC/1000), time, count, task_produced);
     fclose(fp);
     
 #ifdef IS_PRINT
