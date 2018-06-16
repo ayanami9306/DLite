@@ -12,6 +12,7 @@
 extern Robot robotList[NUM_ROBOT];
 extern coordinate itemCoord[NUM_TASK];
 extern Dstar * Task_to_Task[2];
+extern bool Flag_Item_Activate[NUM_TASK];
 
 void PrintPath(int RobotIndex, int ItemIndex, int code)
 {
@@ -75,11 +76,14 @@ void Change_Start(int RobotIndex, int ItemIndex, int x, int y, int code)
     if (!code)
     {
         robotList[RobotIndex].Robot_DStar[ItemIndex]->updateStart(x, y);
+        if(Flag_Item_Activate[ItemIndex])
+        {
 #ifdef DLite
-        robotList[RobotIndex].Robot_DStar[ItemIndex]->replan();
+            robotList[RobotIndex].Robot_DStar[ItemIndex]->replan();
 #else
-        robotList[RobotIndex].Robot_DStar[ItemIndex]->Dijkstra();
+            robotList[RobotIndex].Robot_DStar[ItemIndex]->Dijkstra();
 #endif
+        }
     }
     else
     {
@@ -97,11 +101,14 @@ void Change_Goal(int RobotIndex, int ItemIndex, int x, int y, int code)
     if (!code)
     {
         robotList[RobotIndex].Robot_DStar[ItemIndex]->updateGoal(x, y);
+        if(Flag_Item_Activate[ItemIndex])
+        {
 #ifdef DLite
-        robotList[RobotIndex].Robot_DStar[ItemIndex]->replan();
+            robotList[RobotIndex].Robot_DStar[ItemIndex]->replan();
 #else
-        robotList[RobotIndex].Robot_DStar[ItemIndex]->Dijkstra();
+            robotList[RobotIndex].Robot_DStar[ItemIndex]->Dijkstra();
 #endif
+        }
     }
     else
     {

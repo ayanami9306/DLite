@@ -1,7 +1,6 @@
 #include "MST.h"
 #include "User_Defined_Function.h"
 
-extern bool tree[NUM_TASK][NUM_TASK];
 extern vector<edge> MSTree[2];
 extern bool Flag_Item_Activate[NUM_TASK];
 extern coordinate itemCoord[NUM_TASK];
@@ -29,17 +28,10 @@ bool merge(int u, int v, int *parent)
     return true;
 }
 
-void clear_tree()
-{
-    for (int i = 0; i < NUM_TASK; i++)
-        for (int j = 0; j < NUM_TASK; j++)
-            tree[i][j] = false;
-}
-
 void draw_MSTree()
 {
     vector<task_to_task_cost> task_graph;
-    int parent[NUM_TASK * NUM_TASK];
+    int parent[NUM_TASK];
     task_to_task_cost task_graph_element;
     for (int map_type = 0; map_type < 2; map_type++)
     {
@@ -66,14 +58,13 @@ void draw_MSTree()
         }
         
         MSTree[map_type].clear();
-        clear_tree();
         //printf("\n<map type> %d\n", map_type);
         
         //sort task_graph order by ascending
         sort(task_graph.begin(), task_graph.end(), cmp_task_task);
         
         //parent initialization
-        for(int i = 0; i < task_graph.size(); i++)
+        for(int i = 0; i < NUM_TASK; i++)
             parent[i] = i;
         
         //construct MST
@@ -86,10 +77,8 @@ void draw_MSTree()
                 temp_element.index[0] = task_graph[i].from;
                 temp_element.index[1] = task_graph[i].to;
                 MSTree[map_type].push_back(temp_element);
-                tree[task_graph[i].from][task_graph[i].to] = true;
-                tree[task_graph[i].to][task_graph[i].from] = true;
             }
         }
     }
-    printf("draw MSTree Fin.\n");
+    //printf("draw MSTree Fin.\n");
 }

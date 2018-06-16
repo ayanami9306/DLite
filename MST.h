@@ -19,6 +19,4 @@ int find(int u, int *parent);
 
 bool merge(int u, int v, int *parent);
 
-void clear_tree();
-
 void draw_MSTree();

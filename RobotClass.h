@@ -12,6 +12,7 @@
 #define IDLE 0
 #define WORKING 1
 #define MOVING 2
+#define STOP 3
 
 #define UP 'w'
 #define DOWN 's'
@@ -23,6 +24,12 @@
 #define INF 999999
 
 using namespace std;
+
+typedef struct alloc_task
+{
+    int taskID;
+    double dis = INF;
+}alloc;
 
 class coordinate
 {
@@ -116,10 +123,9 @@ public:
             taskCoord[ii].x = 0;
             taskCoord[ii].y = 0;
             taskCost[ii] = 0;
-            
-            AllocTask.taskId = -1;
-            
         }
+        
+        AllocTask.taskId = -1;
         
         for (int ii = 0; ii < MAP_SIZE; ii++)
         {

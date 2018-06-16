@@ -110,6 +110,7 @@ void Dstar::init(int sX, int sY, int gX, int gY)
     
     s_last = s_start;
     
+    updateVertex(s_start);
 }
 
 /* void Dstar::makeNewCell(state u)
@@ -204,8 +205,28 @@ void Dstar::setRHS(state u, double rhs)
  */
 double Dstar::fourCondist(state a, state b)
 {
-    
-    return fabs(a.x - b.x) + fabs(a.y - b.y);
+    int penalty = 0;
+    if(a.x > b.x)
+    {
+        if(costHash[b].cost_right == -1) penalty += 2;
+        if(costHash[a].cost_left == -1) penalty += 2;
+    }
+    if(a.x < b.x)
+    {
+        if(costHash[a].cost_right == -1) penalty += 2;
+        if(costHash[b].cost_left == -1) penalty += 2;
+    }
+    if(a.y > b.y)
+    {
+        if(costHash[b].cost_down == -1) penalty += 2;
+        if(costHash[a].cost_up == -1) penalty += 2;
+    }
+    if(a.y < b.y)
+    {
+        if(costHash[a].cost_down == -1) penalty += 2;
+        if(costHash[b].cost_up == -1) penalty += 2;
+    }
+    return fabs(a.x - b.x) + fabs(a.y - b.y) + penalty;
     
 }
 
@@ -226,13 +247,9 @@ int Dstar::computeShortestPath() {
     if (openList.empty()) return 1;
     
     int k=0;
-    while (
-           !openList.empty()
-           &&
-           (( openList.top() < (s_start = calculateKey(s_start)) )
-            ||
-            ( getRHS(s_start) != getG(s_start) ))
-           ) {
+    while (!openList.empty() &&
+           ((openList.top() < (s_start = calculateKey(s_start))) ||
+           (getRHS(s_start) != getG(s_start)))) {
         
         if (k++ > maxSteps) {
             fprintf(stderr, "At maxsteps\n");
@@ -262,7 +279,7 @@ int Dstar::computeShortestPath() {
         
         if (k_old < calculateKey(u)) { // u is out of date
             insert(u);
-        } else if (getG(   u) > getRHS(u)) { // needs update (got better)
+        } else if (getG(u) > getRHS(u)) { // needs update (got better)
             setG(u,getRHS(u));
             getPred(u,s);
             for (i=s.begin();i != s.end(); i++) {
@@ -443,6 +460,7 @@ void Dstar::updateCell(int x, int y, double * val)
     costHash[u].cost_right = val[3];
     
     //if((u == s_start) || (u == s_goal)) return;
+    if(u==s_goal) return;
     
     updateVertex(u);
     
@@ -459,6 +477,7 @@ void Dstar::updateCell_with_Goal(int x, int y)
     makeNewCell_with_Goal(u);
     
     //if((u == s_start) || (u == s_goal)) return;
+    if(u==s_goal) return;
     
     updateVertex(u);
     
@@ -497,8 +516,8 @@ void Dstar::updateWall(int x1, int y1, int x2, int y2)
     
     //if((u == s_start) || (u == s_goal)) return;
     
-    updateVertex(u);
-    updateVertex(v);
+    if (u!= s_goal) updateVertex(u);
+    if (v!= s_goal) updateVertex(v);
 }
 
 /* void Dstar::getSucc(state u,list<state> &s)
@@ -507,7 +526,7 @@ void Dstar::updateWall(int x1, int y1, int x2, int y2)
  * 4-way graph this list contains all of a cells neighbours. Unless
  * the cell is occupied in which case it has no successors.
  */
-void Dstar::getSucc(state u,list<state> &s) {
+void Dstar::getSucc(state u, list<state> &s) {
     
     s.clear();
     u.k.first  = -1;
@@ -592,6 +611,10 @@ void Dstar::getPred(state u,list<state> &s) {
  */
 void Dstar::updateStart(int x, int y) {
     
+    state temp;
+    temp.x = s_start.x;
+    temp.y = s_start.y;
+    
     s_start.x = x;
     s_start.y = y;
     
@@ -600,6 +623,8 @@ void Dstar::updateStart(int x, int y) {
     s_start = calculateKey(s_start);
     s_last  = s_start;
     
+    updateVertex(s_start);
+    updateVertex(temp);
 }
 
 /* void Dstar::updateGoal(int x, int y)
@@ -666,19 +691,16 @@ void Dstar::updateGoal(int x, int y) {
  * path that is near a 45 degree angle to goal we break ties based on
  *  the metric euclidean(state, goal) + euclidean(state,start).
  */
+
+struct struct_exhibit
+{
+    int x, y, arrow;
+};
+
 bool Dstar::replan(){
     
     path.clear();
-    /*for(int i=0; i<10; i++)
-     for(int j=0; j<10; j++)
-     {
-     state u;
-     u.x = j;
-     u.y = i;
-     printf("%f %f %f %f\n",costHash[u].cost_up, costHash[u].cost_down, costHash[u].cost_left, costHash[u].cost_right);
-     }*/
-    
-    
+    list<struct_exhibit> exhibit;
     int res = computeShortestPath();
     //printf("res: %d ols: %d ohs: %d tk: [%f %f] sk: [%f %f] sgr: (%f,%f)\n",res,openList.size(),openHash.size(),openList.top().k.first,openList.top().k.second, s_start.k.first, s_start.k.second,getRHS(s_start),getG(s_start));
     if (res < 0) {
@@ -686,7 +708,8 @@ bool Dstar::replan(){
         return false;
     }
     list<state> n;
-    list<state>::iterator i;
+    list<state>::iterator i, k;
+    list<struct_exhibit>::iterator j;
     
     state cur = s_start;
     
@@ -694,10 +717,10 @@ bool Dstar::replan(){
         fprintf(stderr, "NO PATH TO GOAL\n");
         return false;
     }
-    
     while(cur != s_goal) {
         
         path.push_back(cur);
+        list<state> backup_path = path;
         getSucc(cur, n);
         
         if (n.empty()) {
@@ -708,10 +731,27 @@ bool Dstar::replan(){
         double cmin = INFINITY;
         double tmin = INFINITY;
         state smin;
-        
-        for (i=n.begin(); i!=n.end(); i++) {
-            
-            //if (occupied(*i)) continue;
+        bool is_path = false;
+        for (i=n.begin(); i!=n.end(); i++)
+        {
+            bool chk = true;
+            if(!exhibit.empty())
+                for(j = exhibit.begin(); j != exhibit.end(); j++)
+                {
+                    int xd = i->x - cur.x, yd = i->y - cur.y;
+                    int arrow = -1;
+                    //0:up, 1:down, left:2, right:3
+                    if(xd == 1) arrow = 3;
+                    else if(xd == -1) arrow = 2;
+                    else if(yd == 1) arrow = 1;
+                    else if(yd == -1) arrow = 0;
+                    if(i->x == j->x && i->y == j->y && arrow == j->arrow)
+                    {
+                        chk = false;
+                        break;
+                    }
+                }
+            if(!chk) continue;
             double val  = cost(cur,*i);
             double val2 = trueDist(*i,s_goal) + trueDist(s_start,*i); // (Euclidean) cost to goal + cost to pred
             val += getG(*i);
@@ -721,14 +761,70 @@ bool Dstar::replan(){
                     tmin = val2;
                     cmin = val;
                     smin = *i;
+                    is_path = true;
                 }
             } else if (val < cmin) {
                 tmin = val2;
                 cmin = val;
                 smin = *i;
+                is_path = true;
             }
         }
         n.clear();
+        if(!is_path)
+        {
+            state last = path.back();
+            path.pop_back();
+            state prev = path.back();
+            path.pop_back();
+            struct_exhibit temp;
+            temp.x = last.x;
+            temp.y = last.y;
+            int xd = last.x - prev.x, yd = last.y - prev.y;
+            //0:up, 1:down, left:2, right:3
+            if(xd == 1) temp.arrow = 3;
+            else if(xd == -1) temp.arrow = 2;
+            else if(yd == 1) temp.arrow = 1;
+            else if(yd == -1) temp.arrow = 0;
+            exhibit.push_back(temp);
+            smin = prev;
+        }
+        if(path.size() >= 2)
+        {
+            for(k = path.begin(); k != path.end(); k++)
+            {
+                if(smin.x == k->x && smin.y == k->y)
+                {
+                    state prev_k = *k;
+                    k++;
+                    struct_exhibit temp;
+                    temp.x = smin.x;
+                    temp.y = smin.y;
+                    int xd = prev_k.x - k->x, yd = prev_k.y - k->y;
+                    //0:up, 1:down, left:2, right:3
+                    if(xd == 1) temp.arrow = 3;
+                    else if(xd == -1) temp.arrow = 2;
+                    else if(yd == 1) temp.arrow = 1;
+                    else if(yd == -1) temp.arrow = 0;
+                    exhibit.push_back(temp);
+                    smin = *k;
+                    if(path.back() != *k)
+                    {
+                        xd = prev_k.x - path.back().x, yd = prev_k.y - path.back().y;
+                        //0:up, 1:down, left:2, right:3
+                        if(xd == 1) temp.arrow = 3;
+                        else if(xd == -1) temp.arrow = 2;
+                        else if(yd == 1) temp.arrow = 1;
+                        else if(yd == -1) temp.arrow = 0;
+                        exhibit.push_back(temp);
+                    }
+                    while(path.back().x != k->x || path.back().y != k->y)
+                            path.pop_back();
+                    path.pop_back();
+                    break;
+                }
+            }
+        }
         cur = smin;
     }
     path.push_back(s_goal);

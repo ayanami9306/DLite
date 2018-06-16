@@ -6,6 +6,7 @@
 #include "User_Defined_Function.h"
 #include <algorithm>
 #include "MST.h"
+#include "Task_Allocation.h"
 
 using namespace std;
 
@@ -20,7 +21,6 @@ bool Flag_Item_Activate[NUM_TASK] = { false, };
 Dstar * Task_to_Task[2];
 int task_produced = 0;
 
-bool tree[NUM_TASK][NUM_TASK] = { false, }; // task들의 연결을 확인
 vector<edge> MSTree[2];                        // 각각 uniform 맵으로부터 만들어진 mst, random 맵으로부터 만들어진 mst
 // MSTree[0] : Type1, MSTree[1] : Type2
 // 0&2번 로봇이 random => 0번 맵, 1&3번 로봇이 uniform => 1번 맵
@@ -28,188 +28,6 @@ vector<edge> MSTree[2];                        // 각각 uniform 맵으로부터
 // 초기화에만 false 입력, 2개 맵으로 부터의 mst는 동시에 업뎃
 
 void print_result(Robot  * robotList, int mode);
-
-typedef struct alloc_task
-{
-    int taskID;
-    double dis = INF;
-}alloc;
-
-bool check_task(int robotID, int taskID, alloc* robo)
-{
-    if (robo[robotID].dis != INF)
-        return false;
-    for (int i = 0; i < NUM_ROBOT; i++)
-    {
-        if (robo[i].taskID == taskID)
-            return false;
-    }
-    int linked_set = 0;
-    for (int i = 0; i < NUM_TASK; i++)
-    {
-        if (tree[taskID][i] == true)
-        {
-            for (int j = 0; j < NUM_ROBOT; j++)
-            {
-                if (robo[j].taskID == i)
-                    linked_set++;
-                if (linked_set == 2)
-                    return false;
-            }
-        }
-    }
-    return true;
-}
-
-void task_alloc()
-{
-    vector<task_to_task_cost> task_dis;
-    task_to_task_cost task_dis_element;
-    alloc robot[NUM_ROBOT];
-    for (int ii = 0; ii < NUM_ROBOT; ii++)
-    {
-        for (int jj = 0; jj < NUM_TASK; jj++)
-        {
-            if (Flag_Item_Activate[jj] == true)
-            {
-                Change_Start(ii, jj, robotList[ii].robotcoord.x, robotList[ii].robotcoord.y, 0);
-                task_dis_element.from = ii;
-                task_dis_element.to = jj;
-                task_dis_element.distance = getCost(ii, jj, 0) + robotList[ii].taskCost[jj];
-                task_dis.push_back(task_dis_element);
-            }
-        }
-    }
-    
-    sort(task_dis.begin(), task_dis.end(), cmp_task_task);
-    
-    for (int i = 0; i < task_dis.size(); i++)
-    {
-        bool chk = true;
-        int current_bot = task_dis[i].from;
-        int to_task = task_dis[i].to;
-        if(robot[current_bot].dis == INF)
-        {
-            //search tasks within 1G
-            for(int tree_index = 0; tree_index < 2; tree_index++)
-            {
-                for(int element_i = 0; element_i < MSTree[tree_index].size(); element_i++)
-                {
-                    if(MSTree[tree_index][element_i].index[0] == to_task)
-                    {
-                        int G1_Task = MSTree[tree_index][element_i].index[1];
-                        for(int robo_index = 0; robo_index < NUM_ROBOT; robo_index++)
-                            if(robo_index != current_bot)
-                                if((robot[robo_index].taskID == G1_Task && robot[robo_index].dis != INF) || (robot[robo_index].taskID == to_task && robot[robo_index].dis != INF))
-                                {
-                                    chk = false;
-                                    break;
-                                }
-                    }
-                    else if(MSTree[tree_index][element_i].index[1] == to_task)
-                    {
-                        int G1_Task = MSTree[tree_index][element_i].index[0];
-                        for(int robo_index = 0; robo_index < NUM_ROBOT; robo_index++)
-                            if(robo_index != current_bot)
-                                if((robot[robo_index].taskID == G1_Task && robot[robo_index].dis != INF) || (robot[robo_index].taskID == to_task && robot[robo_index].dis != INF))
-                                {
-                                    chk = false;
-                                    break;
-                                }
-                    }
-                    if(!chk) break;
-                }
-                if(!chk) break;
-            }
-            
-            if(chk)
-            {
-                robot[current_bot].taskID = to_task;
-                robot[current_bot].dis = task_dis[i].distance;
-                task_dis[i].distance = INF;
-            }
-        }
-    }
-    
-    //not matched? greedy
-    for(int i = 0; i < task_dis.size(); i++)
-    {
-        if(task_dis[i].distance != INF && robot[task_dis[i].from].dis == INF)
-        {
-            int current_bot = task_dis[i].from;
-            int to_task = task_dis[i].to;
-            bool chk = true;
-            for(int robo_index = 0; robo_index < NUM_ROBOT; robo_index++)
-                if(robot[robo_index].taskID == to_task)
-                {
-                    chk = false;
-                    break;
-                }
-            if(chk)
-            {
-                robot[current_bot].taskID = to_task;
-                robot[current_bot].dis = task_dis[i].distance;
-            }
-        }
-    }
-    
-    printf("task Allocation\n");
-    for (int ii = 0; ii < NUM_ROBOT; ii++)
-    {
-        robotList[ii].AllocTask.taskId = robot[ii].taskID;
-        robotList[ii].AllocTask.taskcoord = itemCoord[robot[ii].taskID];
-        robotList[ii].assignTask(robot[ii].taskID, getPath(ii, robot[ii].taskID, 0), itemCoord);
-        printf("robot %d => task %d (%d,%d)\n", ii, robot[ii].taskID, itemCoord[robot[ii].taskID].x, itemCoord[robot[ii].taskID].y);
-    }
-}
-
-bool check_reservation(int robotID, int taskID)
-{
-    for (int i = 0; i < NUM_ROBOT; i++)
-    {
-        if (i != robotID)
-        {
-            if (robotList[i].AllocTask.taskId == taskID)
-                return true;
-        }
-    }
-    return false;
-}
-void alloc_new_task(int index)
-{
-    int min_taskID;
-    double min_cost = INF;
-    for (int ii = 0; ii < NUM_TASK; ii++)
-    {
-        if (tree[robotList[index].AllocTask.taskId][ii] && !check_reservation(index, ii))
-        {
-            if (min_cost > getCost(index, ii, 0))
-            {
-                min_taskID = ii;
-                min_cost = getCost(index, ii, 0);
-            }
-        }
-    }
-    if (min_cost == INF)
-    {
-        for (int ii = 0; ii < NUM_TASK; ii++)
-        {
-            if (Flag_Item_Activate[ii] == true && !check_reservation(index, ii))
-            {
-                if (min_cost > getCost(index, ii, 0))
-                {
-                    min_taskID = ii;
-                    min_cost = getCost(index, ii, 0);
-                }
-            }
-        }
-    }
-    vector<coordinate> tmp = getPath(index, min_taskID, 0);
-    robotList[index].assignTask(min_taskID, tmp, itemCoord);
-    robotList[index].pathIndex = 0;
-    robotList[index].AllocTask.taskId = min_taskID;
-    robotList[index].AllocTask.taskcoord = itemCoord[min_taskID];
-}
 
 
 /***************************************************************
@@ -603,9 +421,9 @@ int main()
             
             for (int Type_i = 0; Type_i < 2; Type_i++)
             {
-                if (!ii) cost[Type_i][2] = -1;
+                if (ii == 0) cost[Type_i][2] = -1;
                 if (ii == MAP_SIZE - 1) cost[Type_i][3] = -1;
-                if (!jj) cost[Type_i][0] = -1;
+                if (jj == 0) cost[Type_i][0] = -1;
                 if (jj == MAP_SIZE - 1) cost[Type_i][1] = -1;
             }
             
@@ -708,23 +526,30 @@ int main()
             if (robotList[index].status == MOVING)
             {
                 
-                if (movingProgress[index] == 0)
+                if (movingProgress[index] == 0 && reach[index] != 1)
                 {
-                    movingProgress[index] += robotList[index].getTravelCost();
-                    printf("robot %d is on (%d,%d) to move\n", index, robotList[index].robotcoord.x, robotList[index].robotcoord.y);
+                    if(robotList[index].energy >= robotList[index].getTravelCost())
+                    {
+                        movingProgress[index] += robotList[index].getTravelCost();
+                        printf("robot %d is on (%d,%d) to move\n", index, robotList[index].robotcoord.x, robotList[index].robotcoord.y);
+                        robotList[index].totalCost += robotList[index].getTravelCost();
+                        robotList[index].totalBlocks ++;
+                    }
+                    else
+                    {
+                        printf("robot %d has less energy : STOP\n", index);
+                        robotList[index].status = STOP;
+                        robotList[index].AllocTask.taskId = -1;
+                        continue;
+                    }
                 }
                 if (movingProgress[index] > 0)
                 {
-                    //robotList[index].energy -= robotList[index].getTravelCost();
-                    //movingProgress[index] -= robotList[index].getTravelCost();
                     
+                    if(movingProgress[index] >= 10) robotList[index].energy -= 10;
+                    else robotList[index].energy -= movingProgress[index];
                     movingProgress[index] -= 10;
-                    
-                    printf("robot %d is moving in (%d,%d) --- %d\n", index, robotList[index].robotcoord.x, robotList[index].robotcoord.y, movingProgress[index]);
-                }
-                else
-                {
-                    robotList[index].energy -= robotList[index].getTravelCost();
+                    //printf("robot %d is moving in (%d,%d) --- %d\n", index, robotList[index].robotcoord.x, robotList[index].robotcoord.y, movingProgress[index]);
                 }
                 
                 if (reach[index] == 1)
@@ -739,7 +564,7 @@ int main()
                 else if (movingProgress[index] <= 0)
                 {
                     movingProgress[index] = 0;
-                    printf("robot %d's travel finish in (%d,%d)\n", index, robotList[index].robotcoord.x, robotList[index].robotcoord.y);
+                    //printf("robot %d's travel finish in (%d,%d)\n", index, robotList[index].robotcoord.x, robotList[index].robotcoord.y);
                     
                     if (!robotList[index].updatePostion())
                     {
@@ -751,59 +576,63 @@ int main()
                         reach[index] = 1;
                     }
                 }
+                
             }
             else if (robotList[index].status == WORKING)
             {
                 if (taskProgress[index] == 0)
                 {
-                    taskProgress[index] += robotList[index].getTaskCost();
-                    Flag_Item_Activate[robotList[index].AllocTask.taskId] = false;
-                    printf("robot %d is on (%d,%d) to work\n", index, robotList[index].robotcoord.x, robotList[index].robotcoord.y);
+                    if(robotList[index].energy >= robotList[index].getTaskCost())
+                    {
+                        taskProgress[index] += robotList[index].getTaskCost();
+                        Flag_Item_Activate[robotList[index].AllocTask.taskId] = false;
+                        printf("robot %d is on (%d,%d) to work\n", index, robotList[index].robotcoord.x, robotList[index].robotcoord.y);
+                    }
+                    else
+                    {
+                        printf("robot %d has less energy : STOP\n", index);
+                        robotList[index].status = STOP;
+                        robotList[index].AllocTask.taskId = -1;
+                        continue;
+                    }
                 }
                 
                 if (taskProgress[index] > 0)
                 {
                     
+                    if(taskProgress[index] >= 10) robotList[index].energy -= 10;
+                    else robotList[index].energy -= taskProgress[index];
                     taskProgress[index] -= 10;
-                    
-                    printf("robot %d is working on task %d\n", index, robotList[index].AllocTask.taskId);
+                    //printf("robot %d is working on task %d\n", index, robotList[index].AllocTask.taskId);
                     
                 }
-                else if (taskProgress[index] <= 0)
+                if (taskProgress[index] <= 0)
                 {
                     taskProgress[index] = 0;
+                    robotList[index].totalCost += robotList[index].getTaskCost();
                     
                     printf("robot %d finished task %d\n", index, robotList[index].AllocTask.taskId);
-                    robotList[index].energy -= robotList[index].getTaskCost();
                     
-                    //doneList[robotList[index].taskList[robotList[index].curr_task].taskId] = 1;
                     doneList[robotList[index].AllocTask.taskId] = 1;
                     
-                    //robotList[index].curr_task++;
-                    //toedit
-                    //robotList[index].finTask[robotList[index].AllocTask.taskId] = true;
                     robotList[index].status = IDLE;
                     
                     taskProgress[index] = 0;
                     
                     draw_MSTree();
-                    alloc_new_task(index);
+                    //alloc_new_task(index);
+                    task_alloc();
                     present_task--;
                     finished_task++;
+                    
                 }
                 
             }
+            //if state is IDLE
             else if (robotList[index].status == IDLE)
             {
                 printf("robot %d is idle\n", index);
                 
-                /*if (robotList[index].curr_task < NUM_TASK)
-                 {
-                 if (robotList[index].AllocTask.taskId > -1)
-                 {
-                 robotList[index].status = MOVING;
-                 }
-                 }*/
                 if (robotList[index].AllocTask.taskId > -1)
                 {
                     robotList[index].status = MOVING;
@@ -811,9 +640,9 @@ int main()
             }
         }
         time++;
-        printf("\n===================================================================================\n");
-        printf("number of task : %d / finished task : %d / remain task : %d", present_task, finished_task, remain_task);
-        printf("\n===================================================================================\n\n");
+        //printf("\n===================================================================================\n");
+        //printf("number of task : %d / finished task : %d / remain task : %d", present_task, finished_task, remain_task);
+        //printf("\n===================================================================================\n\n");
         //system("pause");
         //simulate robot behavior end
         
@@ -837,12 +666,12 @@ int main()
         
     }
     
+    printf("\n===================================================================================\n");
+        printf("number of task : %d / finished task : %d / remain task : %d", task_produced, finished_task, present_task);
+    printf("\n===================================================================================\n\n");
     
     for (int index = 0; index < NUM_ROBOT; index++)
     {
-        //toedit
-        //robotList[index].calcCost();
-        
         printf("robot %d remaining energy %d\n", index, robotList[index].energy);
     }
     

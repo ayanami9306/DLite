@@ -18,19 +18,6 @@ void Robot::assignTask(int taskId, std::vector<coordinate> inputPath, coordinate
     //if (num_task < NUM_TASK)
     if (taskId < NUM_TASK)
     {
-        /*if (num_task == 0)
-         {
-         current.x = robotcoord.x;
-         current.y = robotcoord.y;
-         }
-         else
-         {
-         current.x = itemList[taskList[num_task - 1].taskId].x;
-         current.y = itemList[taskList[num_task - 1].taskId].y;
-         }
-         
-         next.x = itemList[taskId].x;
-         next.y = itemList[taskId].y;*/
         
         current.x = robotcoord.x;
         current.y = robotcoord.y;
@@ -38,7 +25,7 @@ void Robot::assignTask(int taskId, std::vector<coordinate> inputPath, coordinate
         next.y = itemList[taskId].y;
         
         
-        printf("path assigned from (%d, %d) to (%d, %d)\n", current.x, current.y, next.x, next.y);
+        printf("path assigned from Robot %d(%d, %d) to Item %d(%d, %d)\n", Index_Robot,current.x, current.y, taskId, next.x, next.y);
         AllocTask.taskId = taskId;
         AllocTask.path = inputPath;
         AllocTask.taskcoord.x = next.x;
@@ -93,7 +80,6 @@ bool Robot::atTask()
 
 bool Robot::updatePostion()
 {
-    //pre_path = getPath(Index_Robot, AllocTask.taskId, 0);
     
     //해당 지점에서 벽이 있는지 둘러보고, 있으면 업데이트 합니다.
     //이미 보았던 벽은 업데이트 하지 않게 되어있습니다.
@@ -183,22 +169,8 @@ bool Robot::updatePostion()
         //return true
         pathIndex++;
         
-        
-        /*if (pathIndex < taskList[curr_task].path.size())
-         {
-         
-         robotcoord.x = taskList[curr_task].path.at(pathIndex).x;
-         robotcoord.y = taskList[curr_task].path.at(pathIndex).y;
-         }
-         else
-         {
-         pathIndex = 0;
-         }*/
-        
         if (pathIndex < AllocTask.path.size())
         {
-            totalCost += travelCost[robotcoord.x][robotcoord.y];
-            totalBlocks ++;
             robotcoord.x = AllocTask.path.at(pathIndex).x;
             robotcoord.y = AllocTask.path.at(pathIndex).y;
         }
