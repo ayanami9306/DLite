@@ -722,6 +722,9 @@ int main(int argc, char *argv[])
                     
                     robotList[index].status = IDLE;
                     
+                    robotList[index].AllocTask.taskcoord.x = -1;
+                    robotList[index].AllocTask.taskcoord.y = -1;
+                    
                     taskProgress[index] = 0;
                     
                     draw_MSTree();

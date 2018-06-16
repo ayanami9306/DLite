@@ -30,6 +30,6 @@
 #define RIGHT 'd'
 
 #define DLite
-//#define IS_PRINT
+#define IS_PRINT
 
 #define INF 999999

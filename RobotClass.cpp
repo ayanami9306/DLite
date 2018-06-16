@@ -71,7 +71,7 @@ coordinate Robot::getCurrentPosition()
 bool Robot::atTask()
 {
     //if (robotcoord.x == taskList[curr_task].taskcoord.x && robotcoord.y == taskList[curr_task].taskcoord.y)
-    if (robotcoord.x == AllocTask.taskcoord.x && robotcoord.y == AllocTask.taskcoord.y)
+    if (robotcoord.x == AllocTask.taskcoord.x && robotcoord.y == AllocTask.taskcoord.y && Flag_Item_Activate[AllocTask.taskId])
     {
         return true;
     }
