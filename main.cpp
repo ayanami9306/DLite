@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     else
     {
         fp = fopen(output_filename, "w");
-        fprintf(fp, "E_R1,B_R1,E_R2,B_R2,E_R3,B_R3,E_R4,B_R4,E_total,B_Total,RealTime,SimTime,Task_Finish,Task_Total\n");
+        fprintf(fp, "E_R1,B_R1,E_R2,B_R2,E_R3,B_R3,E_R4,B_R4,E_total,B_Total,RealTime(ms),SimTime,Task_Finish,Task_Total\n");
         fclose(fp);
     }
     int level = -1;
@@ -805,7 +805,7 @@ int main(int argc, char *argv[])
         Total_Blocks += robotList[robo_index].totalBlocks;
         fprintf(fp, "%d,%d,",robotList[robo_index].totalCost, robotList[robo_index].totalBlocks);
     }
-    fprintf(fp, "%d,%d,%.6lf,%d,%d,%d\n",Total_Consumption,Total_Blocks,(float)(endTime-startTime)/(CLOCKS_PER_SEC), time, finished_task, task_produced);
+    fprintf(fp, "%d,%d,%.6lf,%d,%d,%d\n",Total_Consumption,Total_Blocks,(float)(endTime-startTime)/(CLOCKS_PER_SEC/1000), time, finished_task, task_produced);
     fclose(fp);
     
 #ifdef IS_PRINT
