@@ -884,7 +884,7 @@ void Dstar::Dijkstra()
 {
     int dist[MAP_SIZE][MAP_SIZE] = {0, }, prev[MAP_SIZE][MAP_SIZE][2] = {-1, };
     bool is_visited[MAP_SIZE][MAP_SIZE] = {false, };
-    priority_queue<Dijkstra_Node, vector<Dijkstra_Node>, greater<Dijkstra_Node> > Q;
+    while(!Q.empty()) Q.pop();
     
     //set of unvisited node Q initialization
     for(int x=0; x<MAP_SIZE; x++)
@@ -909,15 +909,17 @@ void Dstar::Dijkstra()
     while (!Q.empty())
     {
         u = Q.top();
-        is_visited[u.x][u.y] = true;
+        Q.pop();
+        if(is_visited[u.x][u.y]) continue;
+        else is_visited[u.x][u.y] = true;
+        
         state_u.x = u.x;
         state_u.y = u.y;
-        Q.pop();
         
         //up
         v.x = u.x;
         v.y = u.y - 1;
-        if(Dijkstra_calc_distance(dist, prev, v, u, costHash[state_u].cost_up) && is_visited[v.x][v.y] == false)
+        if(Dijkstra_calc_distance(dist, prev, v, u, costHash[state_u].cost_up))
         {
             Q.push(Dijkstra_Node(v.x, v.y, dist[v.x][v.y]));
         }
@@ -926,7 +928,7 @@ void Dstar::Dijkstra()
         //down
         v.x = u.x;
         v.y = u.y + 1;
-        if(Dijkstra_calc_distance(dist, prev, v, u, costHash[state_u].cost_down) && is_visited[v.x][v.y] == false)
+        if(Dijkstra_calc_distance(dist, prev, v, u, costHash[state_u].cost_down))
         {
             Q.push(Dijkstra_Node(v.x, v.y, dist[v.x][v.y]));
         }
@@ -934,7 +936,7 @@ void Dstar::Dijkstra()
         //left
         v.x = u.x - 1;
         v.y = u.y;
-        if(Dijkstra_calc_distance(dist, prev, v, u, costHash[state_u].cost_left) && is_visited[v.x][v.y] == false)
+        if(Dijkstra_calc_distance(dist, prev, v, u, costHash[state_u].cost_left))
         {
             Q.push(Dijkstra_Node(v.x, v.y, dist[v.x][v.y]));
         }
@@ -942,7 +944,7 @@ void Dstar::Dijkstra()
         //right
         v.x = u.x + 1;
         v.y = u.y;
-        if(Dijkstra_calc_distance(dist, prev, v, u, costHash[state_u].cost_right) && is_visited[v.x][v.y] == false)
+        if(Dijkstra_calc_distance(dist, prev, v, u, costHash[state_u].cost_right))
         {
             Q.push(Dijkstra_Node(v.x, v.y, dist[v.x][v.y]));
         }

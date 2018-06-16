@@ -111,7 +111,7 @@ public:
     void   updateWall(int x1, int y1, int x2, int y2);
     void   Dijkstra();
     bool   replan();
-    
+    priority_queue<Dijkstra_Node, vector<Dijkstra_Node>, greater<Dijkstra_Node> > Q;
     list<state> getDijkstraPath();
     int getDijkstraCost();
     list<state> getPath();

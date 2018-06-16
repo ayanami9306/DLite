@@ -14,10 +14,10 @@
 
 #define NUM_ROBOT 4
 #define NUM_TASK 16
-#define MAX_ENERGY 2000
-#define TIME_MAX 400
+#define MAX_ENERGY 18000
+#define TIME_MAX 3600
 
-#define MAP_SIZE 10
+#define MAP_SIZE 50
 
 #define IDLE 0
 #define WORKING 1
@@ -29,7 +29,7 @@
 #define LEFT 'a'
 #define RIGHT 'd'
 
-#define DLite
+//#define DLite
 #define IS_PRINT
 
 #define INF 999999
