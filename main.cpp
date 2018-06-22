@@ -130,7 +130,82 @@ int main(int argc, char *argv[])
     }
 
 	// Check the map information
+<<<<<<< HEAD
 
+=======
+	/*printf("Final Map!!\n");
+	floodflip.print_map();
+
+	int tmp1, tmp2;
+	tmp1 = floodflip.wall_num('v');
+	printf("V_wall Num : %d\n", tmp1);
+	tmp2 = floodflip.wall_num('h');
+	printf("H_wall Num : %d\n", tmp2);
+	int total = tmp1 + tmp2;
+	printf("Total Num of Wall : %d\n", total);
+	int max_wall_num = (MAP_SIZE - 1)*(MAP_SIZE)+(MAP_SIZE)*(MAP_SIZE - 1);
+	double prob = (double)total / max_wall_num * 100;
+	printf("Wall Probability : %d %\n", prob);*/
+    
+	system("pause");
+    /*
+     char data;
+     
+     
+     FILE  * fp;
+     
+     fp = fopen("hwall10.txt", "r");
+     
+     int i = 0;
+     int j = 0;
+     
+     while (fscanf(fp, "%c", &data) != EOF)
+     {
+     if (data == ' ')
+     {
+     j++;
+     }
+     else if (data == '\n')
+     {
+     i++;
+     
+     j = 0;
+     }
+     else if (data != 13)
+     {
+     hWallMatrix[i][j] = data - 48;
+     
+     }
+     }
+     
+     
+     fclose(fp);
+     fp = fopen("vwall10.txt", "r");
+     
+     i = 0;
+     j = 0;
+     while (fscanf(fp, "%c", &data) != EOF)
+     {
+     if (data == ' ')
+     {
+     j++;
+     }
+     else if (data == '\n')
+     {
+     
+     i++;
+     
+     j = 0;
+     }
+     else if (data != 13)
+     {
+     vWallMatrix[i][j] = data - 48;
+     
+     }
+     }
+     fclose(fp);
+     */
+>>>>>>> 3f52a0255d5685c5d67c0041cff32291fefce8b8
     
     int terreinMatrix[MAP_SIZE][MAP_SIZE];
     // map cost

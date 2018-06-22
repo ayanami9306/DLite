@@ -202,14 +202,20 @@ void ff::edit_map(int level)
 		}
 		// 각 제거 대상의 사방에 대해 벽이 존재할 시 20%확률로 벽 제거
 		for (int id = 0; id < tmp_vec.size(); id++)
+<<<<<<< HEAD
 		{
             int new_coordinate[2];
+=======
+		{
+			int remove;
+>>>>>>> 3f52a0255d5685c5d67c0041cff32291fefce8b8
 			coordi tmp = tmp_vec[id];
 			if (tmp.x - 1 > -1)
 			{
 				if (map[tmp.x - 1][tmp.y] != order[blkID].first)
 				{
 					if (hWallMatrix[tmp.x - 1][tmp.y] == true) // 상
+<<<<<<< HEAD
 					{
                         new_coordinate[0] = rand()%MAP_SIZE;
                         new_coordinate[1] = rand()%(MAP_SIZE-1);
@@ -220,6 +226,12 @@ void ff::edit_map(int level)
                             new_coordinate[1] = rand() % (MAP_SIZE-1);
                         }
                         hWallMatrix[new_coordinate[1]][new_coordinate[0]] = true;
+=======
+					{
+						remove = rand() % 10;
+						if (remove < remove_probab)
+							hWallMatrix[tmp.x - 1][tmp.y] = false;
+>>>>>>> 3f52a0255d5685c5d67c0041cff32291fefce8b8
 					}
 				}
 			}
@@ -228,6 +240,7 @@ void ff::edit_map(int level)
 				if (map[tmp.x + 1][tmp.y] != order[blkID].first)
 				{
 					if (hWallMatrix[tmp.x][tmp.y] == true) // 하
+<<<<<<< HEAD
 					{
                         new_coordinate[0] = rand()%MAP_SIZE;
                         new_coordinate[1] = rand()%(MAP_SIZE-1);
@@ -238,6 +251,12 @@ void ff::edit_map(int level)
                             new_coordinate[1] = rand() % (MAP_SIZE-1);
                         }
                         hWallMatrix[new_coordinate[1]][new_coordinate[0]] = true;
+=======
+					{
+						remove = rand() % 10;
+						if (remove < remove_probab)
+							hWallMatrix[tmp.x][tmp.y] = false;
+>>>>>>> 3f52a0255d5685c5d67c0041cff32291fefce8b8
 					}
 				}
 			}
@@ -246,6 +265,7 @@ void ff::edit_map(int level)
 				if (map[tmp.x][tmp.y - 1] != order[blkID].first)
 				{
 					if (vWallMatrix[tmp.x][tmp.y - 1] == true) // 좌
+<<<<<<< HEAD
 					{
                         new_coordinate[0] = rand()%(MAP_SIZE-1);
                         new_coordinate[1] = rand()%MAP_SIZE;
@@ -256,6 +276,12 @@ void ff::edit_map(int level)
                             new_coordinate[1] = rand() % MAP_SIZE;
                         }
                         vWallMatrix[new_coordinate[1]][new_coordinate[0]] = true;
+=======
+					{
+						remove = rand() % 10;
+						if (remove < remove_probab)
+							vWallMatrix[tmp.x][tmp.y - 1] = false;
+>>>>>>> 3f52a0255d5685c5d67c0041cff32291fefce8b8
 					}
 				}
 			}
@@ -264,6 +290,7 @@ void ff::edit_map(int level)
 				if (map[tmp.x][tmp.y + 1] != order[blkID].first)
 				{
 					if (vWallMatrix[tmp.x][tmp.y] == true) // 우
+<<<<<<< HEAD
 					{
                         new_coordinate[0] = rand()%(MAP_SIZE-1);
                         new_coordinate[1] = rand()%MAP_SIZE;
@@ -274,6 +301,12 @@ void ff::edit_map(int level)
                             new_coordinate[1] = rand() % MAP_SIZE;
                         }
                         vWallMatrix[new_coordinate[1]][new_coordinate[0]] = true;
+=======
+					{
+						remove = rand() % 10;
+						if (remove < remove_probab)
+							vWallMatrix[tmp.x][tmp.y] = false;
+>>>>>>> 3f52a0255d5685c5d67c0041cff32291fefce8b8
 					}
 				}
 			}
