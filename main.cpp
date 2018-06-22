@@ -61,22 +61,23 @@ int main(int argc, char *argv[])
     else
     {
         fp = fopen(output_filename, "w");
-        fprintf(fp, "E_R1,B_R1,E_R2,B_R2,E_R3,B_R3,E_R4,B_R4,E_total,B_Total,RealTime(ms),SimTime,Task_Finish,Task_Total\n");
+        fprintf(fp, "Prob_Wall,E_R1,B_R1,E_R2,B_R2,E_R3,B_R3,E_R4,B_R4,E_total,B_Total,RealTime(ms),SimTime,Task_Finish,Task_Total\n");
         fclose(fp);
     }
-    int level = -1;
+    double level = -1;
     
-    if(config[0] == 69 || config[0] == 72 || config[0] == 78)
+    if(config[0] == 'N' || config[0] == 'H' || config[0] == 'E' )
     {
         //input 'E' or 'N' or 'H'
         switch (config[0])
         {
-            case 72:
-                level = 5; // hard
-            case 78:
-                level = 3; // normal
+            case 'H':
+                level = 3.0; // hard
                 break;
-            case 69:
+            case 'N':
+                level = 2.0; // normal
+                break;
+            case 'E':
                 level = 1; // easy
                 break;
         }
@@ -91,22 +92,28 @@ int main(int argc, char *argv[])
     bool exit_condition = false;
     while (!exit_condition)
     {
-        
-        for (int ii = 0; ii < MAP_SIZE; ii++)
-            for (int jj = 0; jj < MAP_SIZE - 1; jj++)
+        int wall_num = (double)((MAP_SIZE - 1)*(MAP_SIZE)+(MAP_SIZE)*(MAP_SIZE - 1)) * level / 10.0;
+        for(int count = 0; count < wall_num;)
+        {
+            int new_coordinate[2];
+            new_coordinate[0] = rand()%MAP_SIZE;
+            new_coordinate[1] = rand()%(MAP_SIZE-1);
+            while(hWallMatrix[new_coordinate[1]][new_coordinate[0]])
             {
-                int tmp = rand() % 10;
-                if (tmp < level)
-                    vWallMatrix[ii][jj] = 1;
+                new_coordinate[0] = rand() % MAP_SIZE;
+                new_coordinate[1] = rand() % (MAP_SIZE-1);
             }
-        for (int ii = 0; ii < MAP_SIZE - 1; ii++)
-            for (int jj = 0; jj < MAP_SIZE; jj++)
+            hWallMatrix[new_coordinate[1]][new_coordinate[0]] = true;
+            new_coordinate[0] = rand()%(MAP_SIZE-1);
+            new_coordinate[1] = rand()%MAP_SIZE;
+            while(vWallMatrix[new_coordinate[1]][new_coordinate[0]])
             {
-                int tmp = rand() % 10;
-                if (tmp < level)
-                    hWallMatrix[ii][jj] = 1;
+                new_coordinate[0] = rand() % (MAP_SIZE-1);
+                new_coordinate[1] = rand() % MAP_SIZE;
             }
-        
+            vWallMatrix[new_coordinate[1]][new_coordinate[0]] = true;
+            count+=2;
+        }
         map_block = floodflip.check_map();
         //floodflip.print_map(V_map, H_map);
         //cout << "Number of Block = " << map_block << endl;
@@ -121,64 +128,9 @@ int main(int argc, char *argv[])
         if(map_block == 1)
             exit_condition = true;
     }
-    
-    /*
-     char data;
-     
-     
-     FILE  * fp;
-     
-     fp = fopen("hwall10.txt", "r");
-     
-     int i = 0;
-     int j = 0;
-     
-     while (fscanf(fp, "%c", &data) != EOF)
-     {
-     if (data == ' ')
-     {
-     j++;
-     }
-     else if (data == '\n')
-     {
-     i++;
-     
-     j = 0;
-     }
-     else if (data != 13)
-     {
-     hWallMatrix[i][j] = data - 48;
-     
-     }
-     }
-     
-     
-     fclose(fp);
-     fp = fopen("vwall10.txt", "r");
-     
-     i = 0;
-     j = 0;
-     while (fscanf(fp, "%c", &data) != EOF)
-     {
-     if (data == ' ')
-     {
-     j++;
-     }
-     else if (data == '\n')
-     {
-     
-     i++;
-     
-     j = 0;
-     }
-     else if (data != 13)
-     {
-     vWallMatrix[i][j] = data - 48;
-     
-     }
-     }
-     fclose(fp);
-     */
+
+	// Check the map information
+
     
     int terreinMatrix[MAP_SIZE][MAP_SIZE];
     // map cost
@@ -321,9 +273,21 @@ int main(int argc, char *argv[])
         //    fprintf(fp, "\n");
     }
     printf("\n");
+
 #endif
     
+    int tmp1 = floodflip.wall_num('v'), tmp2 = floodflip.wall_num('h');
+    int max_wall_num = (MAP_SIZE - 1)*(MAP_SIZE)+(MAP_SIZE)*(MAP_SIZE - 1);
+    double prob = (double)(tmp1 + tmp2) / max_wall_num * 100;
     
+#ifdef IS_PRINT
+    
+    printf("V_wall Num : %d\n", tmp1);
+    printf("H_wall Num : %d\n", tmp2);
+    printf("Total Num of Wall : %d\n", tmp1 + tmp2);
+    printf("Wall Probability : %.2lf %%\n\n\n", prob);
+    
+#endif
     
     int same;
     
@@ -479,9 +443,6 @@ int main(int argc, char *argv[])
             //set start and goal
             temp_robot->Robot_DStar[task_index]->init(temp_robot->robotcoord.x, temp_robot->robotcoord.y, itemCoord[task_index].x, itemCoord[task_index].y);
             
-            //기본값은 비활성화 상태이므로, 활성화 상태를 만들어줍니다.
-            //비활성화 상태이면 replan method를 실행하지 않습니다.
-            //replan method는 자동으로 돌아가게 해두었으므로, 실제로 호출할 일은 없습니다.
             Flag_Item_Activate[task_index] = true;
         }
         for (int task_index = task_produced; task_index < NUM_TASK; task_index++)
@@ -561,6 +522,7 @@ int main(int argc, char *argv[])
     // simulation
     while (time < TIME_MAX && exitCondition == 0)
     {
+        if((double)(clock() - startTime)/(CLOCKS_PER_SEC) > CUT_OFF_TIME) exit(9);
         // spawn new task
         if (time == time_produced && task_produced < NUM_TASK)
         {
@@ -721,14 +683,13 @@ int main(int argc, char *argv[])
                     doneList[robotList[index].AllocTask.taskId] = 1;
                     
                     robotList[index].status = IDLE;
-                    
+                    robotList[index].AllocTask.taskId = -1;
                     robotList[index].AllocTask.taskcoord.x = -1;
                     robotList[index].AllocTask.taskcoord.y = -1;
                     
                     taskProgress[index] = 0;
                     
                     draw_MSTree();
-                    //alloc_new_task(index);
                     task_alloc();
                     present_task--;
                     finished_task++;
@@ -802,6 +763,7 @@ int main(int argc, char *argv[])
     time_t endTime = clock();
     int Total_Consumption = 0, Total_Blocks = 0;
     fp = fopen(output_filename, "a");
+    fprintf(fp, "%.2lf,",prob);
     for(int robo_index=0; robo_index<NUM_ROBOT; robo_index++)
     {
         Total_Consumption += robotList[robo_index].totalCost;

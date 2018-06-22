@@ -14,10 +14,10 @@
 
 #define NUM_ROBOT 4
 #define NUM_TASK 16
-#define MAX_ENERGY 18000
-#define TIME_MAX 3600
+#define MAX_ENERGY 2000
+#define TIME_MAX 400
 
-#define MAP_SIZE 50
+#define MAP_SIZE 10
 
 #define IDLE 0
 #define WORKING 1
@@ -31,5 +31,10 @@
 
 //#define DLite
 #define IS_PRINT
+//#define MST_ALLOC
 
 #define INF 999999
+
+#define max_value(a,b) (a > b ? a : b)
+
+#define CUT_OFF_TIME max_value((MAP_SIZE * MAP_SIZE / 125.0), 10)

@@ -23,8 +23,10 @@ bool check_reservation(int robotID, int taskID)
 }
 void alloc_new_task(int index)
 {
+    int min_taskID = -1;
+    int to_task = robotList[index].AllocTask.taskId;
+#ifdef MST_ALLOC
     int current_bot = index;
-    int to_task = robotList[current_bot].AllocTask.taskId;
     bool G1_List[2][NUM_TASK] = {false, };
     
     robotList[index].AllocTask.taskId = -1;
@@ -86,7 +88,6 @@ void alloc_new_task(int index)
     G1_List[1][to_task] = true;
     
     int min_cost = INF;
-    int min_taskID = -1;
     for(int item_index=0; item_index<NUM_TASK; item_index++)
     {
         Change_Start(current_bot, item_index, robotList[current_bot].robotcoord.x, robotList[current_bot].robotcoord.y, 0);
@@ -99,13 +100,18 @@ void alloc_new_task(int index)
             }
         }
     }
-    //greedy 할 필요없음. 최소한 자신의 job으로 할당됨
     
     vector<coordinate> tmp = getPath(index, min_taskID, 0);
     robotList[index].assignTask(min_taskID, tmp, itemCoord);
     robotList[index].pathIndex = 0;
     robotList[index].AllocTask.taskId = min_taskID;
     robotList[index].AllocTask.taskcoord = itemCoord[min_taskID];
+    
+#else
+    
+    min_taskID = robotList[index].AllocTask.taskId;
+    
+#endif
     
     if(to_task != min_taskID)
     {
@@ -120,20 +126,31 @@ void alloc_new_task(int index)
 void task_alloc()
 {
     alloc alloc_robot[NUM_ROBOT];
+    
+    //MST_ALLOC
+#ifdef MST_ALLOC
     vector<task_to_task_cost> task_dis;
     task_to_task_cost task_dis_element;
     for (int ii = 0; ii < NUM_ROBOT; ii++)
     {
-        for (int jj = 0; jj < NUM_TASK; jj++)
+        if(robotList[ii].status != WORKING)
         {
-            if (Flag_Item_Activate[jj] == true)
+            for (int jj = 0; jj < NUM_TASK; jj++)
             {
-                Change_Start(ii, jj, robotList[ii].robotcoord.x, robotList[ii].robotcoord.y, 0);
-                task_dis_element.from = ii;
-                task_dis_element.to = jj;
-                task_dis_element.distance = getCost(ii, jj, 0) + robotList[ii].taskCost[jj];
-                task_dis.push_back(task_dis_element);
+                if (Flag_Item_Activate[jj] == true)
+                {
+                    Change_Start(ii, jj, robotList[ii].robotcoord.x, robotList[ii].robotcoord.y, 0);
+                    task_dis_element.from = ii;
+                    task_dis_element.to = jj;
+                    task_dis_element.distance = getCost(ii, jj, 0) + robotList[ii].taskCost[jj];
+                    task_dis.push_back(task_dis_element);
+                }
             }
+        }
+        else
+        {
+            alloc_robot[ii].taskID = robotList[ii].AllocTask.taskId;
+            alloc_robot[ii].dis = 1;
         }
     }
     
@@ -217,6 +234,48 @@ void task_alloc()
             }
         }
     }
+#else
+    //RANDOM ALLOC
+    int Task_Count = 0;
+    
+    for(int Task_Index = 0; Task_Index < NUM_TASK; Task_Index++)
+        if(Flag_Item_Activate[Task_Index] && !check_reservation(-1, Task_Index)) Task_Count++;
+    
+    for(int Robot_Index = 0; Robot_Index < NUM_ROBOT; Robot_Index++)
+    {
+        if(robotList[Robot_Index].status == IDLE)
+        {
+            bool exit_condition = false;
+            while(!exit_condition && Task_Count)
+            {
+                int Task = rand() % NUM_TASK;
+                if(Flag_Item_Activate[Task] && !check_reservation(Robot_Index, Task))
+                {
+                    Change_Start(Robot_Index, Task, robotList[Robot_Index].robotcoord.x, robotList[Robot_Index].robotcoord.y, 0);
+                    robotList[Robot_Index].AllocTask.taskId = Task;
+                    robotList[Robot_Index].AllocTask.taskcoord = itemCoord[Task];
+                    robotList[Robot_Index].assignTask(Task, getPath(Robot_Index, Task, 0), itemCoord);
+                    robotList[Robot_Index].pre_path = getPath(Robot_Index, Task, 0);
+                    Task_Count--;
+                    exit_condition = true;
+                }
+            }
+        }
+    }
+    
+#endif
+    
+#if defined (IS_PRINT) && !defined (MST_ALLOC)
+    for(int Robot_Index = 0; Robot_Index < NUM_ROBOT; Robot_Index++)
+    {
+        printf("robot %d => task %d (%d,%d)\n", Robot_Index, robotList[Robot_Index].AllocTask.taskId, itemCoord[robotList[Robot_Index].AllocTask.taskId].x, itemCoord[robotList[Robot_Index].AllocTask.taskId].y);
+    }
+#endif
+
+#ifndef MST_ALLOC
+    return;
+#endif
+    
 #ifdef IS_PRINT
     printf("\n\ntask Allocation\n");
 #endif
@@ -232,7 +291,7 @@ void task_alloc()
 #endif
             robotList[ii].pre_path = getPath(ii, robotList[ii].AllocTask.taskId, 0);
         }
-        else
+        else if(robotList[ii].status == WORKING)
         {
 #ifdef IS_PRINT
             printf("robot %d is working now\n", ii);

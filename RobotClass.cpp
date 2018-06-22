@@ -148,15 +148,6 @@ bool Robot::updatePostion()
     
     //기존에 알고있었던 패스가 재구성된 패스랑 다를 경우 false를 리턴합니다
     
-    //아래부분부터는 구현해주셔야할 내용입니다.
-    //리턴값이 false일경우 1G이내의 비선점된 아이템을 서치하여 재할당합니다.
-    //그런 아이템이 없을 경우 의논하였던 대로 그리디하게 할당합니다.
-    //그리고 패스 업데이트를 다시 합니다.
-    //아마도 pathIndex 값을 재수정하셔야할 것 같습니다. (패스가 달라지므로)
-    //패스를 한번 리니어 서치해서 현재 위치와 같은 곳을 패스인덱스로 설정하시면 될 것 같습니다.
-    //cost = 거리 코스트 + task cost임을 기억하시고 서치하시면 될것같습니다.
-    //구현해주셔야할 내용 끝
-    
     if (!is_path_same(pre_path, getPath(Index_Robot, AllocTask.taskId, 0)))
     {
         for (int item = 0; item < NUM_TASK; item++)
@@ -168,7 +159,6 @@ bool Robot::updatePostion()
     else
     {
         //재구성된 패스가 이전 패스와 동일할 경우 위치를 다음 위치로 업데이트하고 true를 리턴합니다.
-        //if original path is same, execute updateposition
         //return true
         pathIndex++;
         

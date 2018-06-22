@@ -2,6 +2,8 @@
 #include <iostream>
 #include <time.h>
 #include <vector>
+#include <algorithm>
+
 #include "string.h"
 
 extern int hWallMatrix[MAP_SIZE - 1][MAP_SIZE];
@@ -99,33 +101,46 @@ void ff::print_map()
 {
 	cout << endl;
 	cout << "<MAP>" << endl;
+	for (int jj = 0; jj < col; jj++)
+		cout << " ----";
+	cout << endl;
 	for (int ii = 0; ii < row; ii++)
 	{
+		cout << "|";
 		for (int jj = 0; jj < col; jj++)
 		{
-			cout.width(3);
-			cout << map[ii][jj] << " ";
-			cout.width();
+			if (map[ii][jj] == 1)
+				cout << "    ";
+			else
+			{
+				cout.width(3);
+				cout << map[ii][jj] << " ";
+				cout.width();
+			}
 			if (jj < col - 1)
 			{
-				if (vWallMatrix[ii][jj] == true)
+				if (vWallMatrix[ii][jj] == 1)
 					cout << "|";
 				else
 					cout << " ";
 			}
 		}
+		cout << "|";
 		cout << endl;
+		cout << " ";
 		for (int jj = 0; jj < col; jj++)
 		{
 			if (ii < row - 1)
 			{
-				if (hWallMatrix[ii][jj] == true)
+				if (hWallMatrix[ii][jj] == 1)
 					cout << "----";
 				else
 					cout << "    ";
 				if (jj < col - 1)
 					cout << ".";
 			}
+			else
+				cout << "---- ";
 		}
 		cout << endl << endl;
 	}
@@ -136,16 +151,40 @@ typedef struct coordi
 	int x;
 	int y;
 }coordi;
+bool comp(std::pair<int, int> A, std::pair<int, int> B)
+{
+	return (A.second < B.second);
+}
 void ff::edit_map(int level)
 {
-	for (int blkID = 2; blkID <= num_block; blkID++)
+	std::vector<std::pair<int, int>> order;
+	for (int n = 1; n <= num_block; n++)
+	{
+		int cnt = 0;
+		std::pair<int, int> tmp;
+		for (int i = 0; i < row; i++)
+		{
+			for (int j = 0; j < col; j++)
+			{
+				if (map[i][j] == n)
+					cnt++;
+			}
+		}
+		tmp.first = n;
+		tmp.second = cnt;
+		order.push_back(tmp);
+	}
+	std::sort(order.begin(), order.end(), comp);
+
+	bool exit_cond = false;
+	for (int blkID = 0; blkID < num_block && !exit_cond; blkID++)
 	{
 		vector<coordi> tmp_vec;
 		for (int i = 0; i < row; i++)
 		{
 			for (int j = 0; j < col; j++)
 			{
-				if (map[i][j] == blkID)
+				if (map[i][j] == order[blkID].first)
 				{
 					coordi tmp;
 					tmp.x = i;
@@ -158,52 +197,118 @@ void ff::edit_map(int level)
 		for (int id = 0; id < tmp_vec.size(); id++)
 		{
 			int freq = rand() % 10;
-			if (freq > level) 
+			if (freq > level)
 				tmp_vec.erase(tmp_vec.begin() + id);
 		}
 		// 각 제거 대상의 사방에 대해 벽이 존재할 시 20%확률로 벽 제거
-		int remove_probab = 2;
 		for (int id = 0; id < tmp_vec.size(); id++)
 		{
-			int remove;
-			coordi tmp = tmp_vec.data()[id];
+            int new_coordinate[2];
+			coordi tmp = tmp_vec[id];
 			if (tmp.x - 1 > -1)
 			{
-				if (hWallMatrix[tmp.x - 1][tmp.y] == true) // 상
+				if (map[tmp.x - 1][tmp.y] != order[blkID].first)
 				{
-					remove = rand() % 10;
-					if (remove < remove_probab)
-						hWallMatrix[tmp.x - 1][tmp.y] = false;
+					if (hWallMatrix[tmp.x - 1][tmp.y] == true) // 상
+					{
+                        new_coordinate[0] = rand()%MAP_SIZE;
+                        new_coordinate[1] = rand()%(MAP_SIZE-1);
+                        hWallMatrix[tmp.x - 1][tmp.y] = false;
+                        while(hWallMatrix[new_coordinate[1]][new_coordinate[0]])
+                        {
+                            new_coordinate[0] = rand() % MAP_SIZE;
+                            new_coordinate[1] = rand() % (MAP_SIZE-1);
+                        }
+                        hWallMatrix[new_coordinate[1]][new_coordinate[0]] = true;
+					}
 				}
 			}
 			if (row > tmp.x + 1)
 			{
-				if (hWallMatrix[tmp.x][tmp.y] == true) // 하
+				if (map[tmp.x + 1][tmp.y] != order[blkID].first)
 				{
-					remove = rand() % 10;
-					if (remove < remove_probab)
-						hWallMatrix[tmp.x][tmp.y] = false;
+					if (hWallMatrix[tmp.x][tmp.y] == true) // 하
+					{
+                        new_coordinate[0] = rand()%MAP_SIZE;
+                        new_coordinate[1] = rand()%(MAP_SIZE-1);
+                        hWallMatrix[tmp.x][tmp.y] = false;
+                        while(hWallMatrix[new_coordinate[1]][new_coordinate[0]])
+                        {
+                            new_coordinate[0] = rand() % MAP_SIZE;
+                            new_coordinate[1] = rand() % (MAP_SIZE-1);
+                        }
+                        hWallMatrix[new_coordinate[1]][new_coordinate[0]] = true;
+					}
 				}
 			}
 			if (tmp.y - 1 > -1)
 			{
-				if (vWallMatrix[tmp.x][tmp.y - 1] == true) // 좌
+				if (map[tmp.x][tmp.y - 1] != order[blkID].first)
 				{
-					remove = rand() % 10;
-					if (remove < remove_probab)
-						vWallMatrix[tmp.x][tmp.y - 1] = false;
+					if (vWallMatrix[tmp.x][tmp.y - 1] == true) // 좌
+					{
+                        new_coordinate[0] = rand()%(MAP_SIZE-1);
+                        new_coordinate[1] = rand()%MAP_SIZE;
+                        vWallMatrix[tmp.x][tmp.y - 1] = false;
+                        while(vWallMatrix[new_coordinate[1]][new_coordinate[0]])
+                        {
+                            new_coordinate[0] = rand() % (MAP_SIZE-1);
+                            new_coordinate[1] = rand() % MAP_SIZE;
+                        }
+                        vWallMatrix[new_coordinate[1]][new_coordinate[0]] = true;
+					}
 				}
 			}
 			if (col > tmp.y + 1)
 			{
-				if (vWallMatrix[tmp.x][tmp.y] == true) // 우
+				if (map[tmp.x][tmp.y + 1] != order[blkID].first)
 				{
-					remove = rand() % 10;
-					if (remove < remove_probab)
-						vWallMatrix[tmp.x][tmp.y] = false;
+					if (vWallMatrix[tmp.x][tmp.y] == true) // 우
+					{
+                        new_coordinate[0] = rand()%(MAP_SIZE-1);
+                        new_coordinate[1] = rand()%MAP_SIZE;
+                        vWallMatrix[tmp.x][tmp.y] = false;
+                        while(vWallMatrix[new_coordinate[1]][new_coordinate[0]])
+                        {
+                            new_coordinate[0] = rand() % (MAP_SIZE-1);
+                            new_coordinate[1] = rand() % MAP_SIZE;
+                        }
+                        vWallMatrix[new_coordinate[1]][new_coordinate[0]] = true;
+					}
 				}
 			}
 		}
 		tmp_vec.clear();
+		int tmp = num_block;
+		if (check_map() < tmp)
+			exit_cond = true;
 	}
+	order.clear();
+}
+int ff::wall_num(char c)
+{
+	int cnt = 0;
+	if (c == 'v')
+	{
+		for (int i = 0; i < row; i++)
+		{
+			for (int j = 0; j < col - 1; j++)
+			{
+				if (vWallMatrix[i][j] == 1)
+					cnt++;
+			}
+		}
+	}
+	else if (c == 'h')
+	{
+		for (int i = 0; i < row - 1; i++)
+		{
+			for (int j = 0; j < col; j++)
+			{
+				if (hWallMatrix[i][j] == 1)
+					cnt++;
+			}
+		}
+	}
+	return cnt;
 }

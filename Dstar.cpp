@@ -727,8 +727,9 @@ bool Dstar::replan(){
 #endif
         return false;
     }
+    time_t start = clock();
     while(cur != s_goal) {
-        
+        if((double)(clock() - start)/(CLOCKS_PER_SEC) > CUT_OFF_TIME) exit(9);
         path.push_back(cur);
         list<state> backup_path = path;
         getSucc(cur, n);
@@ -822,7 +823,8 @@ bool Dstar::replan(){
                     smin = *k;
                     if(path.back() != *k)
                     {
-                        xd = prev_k.x - path.back().x, yd = prev_k.y - path.back().y;
+                        xd = prev_k.x - path.back().x;
+                        yd = prev_k.y - path.back().y;
                         //0:up, 1:down, left:2, right:3
                         if(xd == 1) temp.arrow = 3;
                         else if(xd == -1) temp.arrow = 2;

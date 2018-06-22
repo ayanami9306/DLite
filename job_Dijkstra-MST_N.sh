@@ -1,0 +1,10 @@
+#! /bin/ksh
+
+i=0
+while [ $i -lt 1000 ]
+do
+	./Dijkstra-MST N Dijkstra-MST_N.csv
+	i=$(($i+1))
+	sleep 1
+done
+echo 'Dijkstra-MST_N done'

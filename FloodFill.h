@@ -11,6 +11,7 @@ public:
 	int check_map();
 	void print_map();
 	void edit_map(int);
+	int wall_num(char);
 	
 private:
 	void clear_map();
